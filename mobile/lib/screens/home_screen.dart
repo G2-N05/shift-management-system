@@ -166,7 +166,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Shift #${shift.id}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                            Expanded(
+                              child: Text(
+                                shift.notes ?? "Shift #${shift.id}", 
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(

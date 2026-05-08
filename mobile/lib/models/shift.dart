@@ -6,6 +6,7 @@ class Shift {
   final String? clockInTime;
   final String? clockOutTime;
   final String status;
+  final String? notes;
 
   Shift({
     required this.id,
@@ -15,6 +16,7 @@ class Shift {
     this.clockInTime,
     this.clockOutTime,
     required this.status,
+    this.notes,
   });
 
   factory Shift.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Shift {
       clockInTime: json['ClockInTime'],
       clockOutTime: json['ClockOutTime'],
       status: json['Status'] ?? 'scheduled',
+      notes: json['Notes'],
     );
   }
 }

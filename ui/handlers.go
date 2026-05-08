@@ -54,6 +54,24 @@ func (h *Handler) CreateUser(c *gin.Context) {
 }
 
 func (h *Handler) GetShifts(c *gin.Context) {
+	role, _ := c.Get("role")
+	
+	if role == "employee" {
+		userIDFloat, ok := c.Get("userID")
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user ID not found in token"})
+			return
+		}
+		userID := uint(userIDFloat.(float64))
+		shifts, err := h.shiftService.GetShiftsByUser(userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, shifts)
+		return
+	}
+
 	shifts, err := h.shiftService.GetAllShifts()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
