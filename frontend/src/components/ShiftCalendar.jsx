@@ -23,6 +23,14 @@ function ShiftCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState('week');
   const [zoomStep, setZoomStep] = useState(30); // minutes per slot
+  
+  // Edit Shift State
+  const [editingShift, setEditingShift] = useState(null);
+  const [editUserId, setEditUserId] = useState('');
+  const [editStartTime, setEditStartTime] = useState('');
+  const [editEndTime, setEditEndTime] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editStatus, setEditStatus] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -85,6 +93,56 @@ function ShiftCalendar() {
     };
   };
 
+  const handleSelectEvent = (event) => {
+    const s = event.resource;
+    setEditingShift(s);
+    setEditUserId(s.UserID);
+    setEditNotes(s.Notes || '');
+    setEditStatus(s.Status || 'scheduled');
+    
+    const formatForInput = (isoString) => {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      return d.toISOString().slice(0, 16);
+    };
+    
+    setEditStartTime(formatForInput(s.StartTime));
+    setEditEndTime(formatForInput(s.EndTime));
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await fetch(`http://localhost:8080/api/shifts/${editingShift.ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          UserID: parseInt(editUserId),
+          StartTime: new Date(editStartTime).toISOString(),
+          EndTime: new Date(editEndTime).toISOString(),
+          Notes: editNotes,
+          Status: editStatus
+        })
+      });
+      setEditingShift(null);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to completely delete this shift from the calendar?")) return;
+    try {
+      await fetch(`http://localhost:8080/api/shifts/${id}`, { method: 'DELETE' });
+      setEditingShift(null);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="card h-100 shadow-sm border-0">
       <div className="card-header d-flex justify-content-between align-items-center bg-white border-bottom py-3">
@@ -126,9 +184,62 @@ function ShiftCalendar() {
             showMultiDayTimes
             dayLayoutAlgorithm="no-overlap"
             eventPropGetter={eventStyleGetter}
+            onSelectEvent={handleSelectEvent}
           />
         )}
       </div>
+
+      {editingShift && (
+        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content border-0 shadow">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Shift #{editingShift.ID}</h5>
+                <button type="button" className="btn-close" onClick={() => setEditingShift(null)}></button>
+              </div>
+              <div className="modal-body">
+                <form onSubmit={handleUpdate}>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Assigned To (User ID)</label>
+                    <select className="form-select" value={editUserId} onChange={(e) => setEditUserId(e.target.value)} required>
+                      {users.map(u => (
+                        <option key={u.ID} value={u.ID}>#{u.ID} - {u.Name} (Lv {u.SkillLevel})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Task Description / Notes</label>
+                    <input type="text" className="form-control" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Start Time</label>
+                    <input type="datetime-local" className="form-control" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">End Time</label>
+                    <input type="datetime-local" className="form-control" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} required />
+                  </div>
+                  <div className="mb-4">
+                    <label className="form-label text-muted small">Status</label>
+                    <select className="form-select" value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
+                      <option value="scheduled">Scheduled</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <button type="button" className="btn btn-outline-danger" onClick={() => handleDelete(editingShift.ID)}>Delete Shift</button>
+                    <div>
+                      <button type="button" className="btn btn-light me-2" onClick={() => setEditingShift(null)}>Cancel</button>
+                      <button type="submit" className="btn btn-primary">Save Changes</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

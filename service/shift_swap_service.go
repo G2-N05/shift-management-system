@@ -130,8 +130,13 @@ func (s *shiftSwapService) AutoSwap(requesterID, shiftID uint) error {
 	var bestUser *domain.User
 	var bestScore int = -9999
 
+	requester, err := s.userRepo.FindByID(requesterID)
+	if err != nil {
+		return err
+	}
+
 	for _, u := range users {
-		if u.ID == requesterID {
+		if u.ID == requesterID || u.Role != requester.Role {
 			continue
 		}
 

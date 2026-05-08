@@ -10,6 +10,14 @@ function TaskManagement() {
   const [headcount, setHeadcount] = useState(1);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  
+  const [editingTask, setEditingTask] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editRole, setEditRole] = useState('employee');
+  const [editRequiredSkill, setEditRequiredSkill] = useState(1);
+  const [editHeadcount, setEditHeadcount] = useState(1);
+  const [editStartTime, setEditStartTime] = useState('');
+  const [editEndTime, setEditEndTime] = useState('');
 
   useEffect(() => {
     fetchTasks();
@@ -43,6 +51,58 @@ function TaskManagement() {
         })
       });
       setTitle('');
+      fetchTasks();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEditClick = (task) => {
+    setEditingTask(task);
+    setEditTitle(task.Title);
+    setEditRole(task.RequiredRole);
+    setEditRequiredSkill(task.RequiredSkill);
+    setEditHeadcount(task.Headcount);
+    
+    // Format dates for datetime-local input
+    const formatForInput = (isoString) => {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      // Adjust for local timezone offset
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      return d.toISOString().slice(0, 16);
+    };
+    
+    setEditStartTime(formatForInput(task.StartTime));
+    setEditEndTime(formatForInput(task.EndTime));
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await fetch(`http://localhost:8080/api/tasks/${editingTask.ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          Title: editTitle,
+          RequiredRole: editRole,
+          RequiredSkill: parseInt(editRequiredSkill),
+          Headcount: parseInt(editHeadcount),
+          StartTime: new Date(editStartTime).toISOString(),
+          EndTime: new Date(editEndTime).toISOString()
+        })
+      });
+      setEditingTask(null);
+      fetchTasks();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this task requirement?")) return;
+    try {
+      await fetch(`http://localhost:8080/api/tasks/${id}`, { method: 'DELETE' });
       fetchTasks();
     } catch (err) {
       console.error(err);
@@ -139,6 +199,7 @@ function TaskManagement() {
                     <th>Headcount</th>
                     <th>Time Needed</th>
                     <th>Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -161,10 +222,20 @@ function TaskManagement() {
                            <span className="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">Unassigned</span>
                         )}
                       </td>
+                      <td>
+                        <button className="btn btn-sm btn-outline-primary py-0 px-2 me-1" onClick={() => handleEditClick(t)}>
+                          Edit
+                        </button>
+                        {!t.IsAssigned && (
+                          <button className="btn btn-sm btn-outline-danger py-0 px-2" onClick={() => handleDelete(t.ID)}>
+                            Del
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {tasks.length === 0 && (
-                    <tr><td colSpan="4" className="text-center py-4 text-muted">No task requirements found.</td></tr>
+                    <tr><td colSpan="6" className="text-center py-4 text-muted">No task requirements found.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -172,6 +243,55 @@ function TaskManagement() {
           </div>
         </div>
       </div>
+
+      {editingTask && (
+        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content border-0 shadow">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Task Requirement</h5>
+                <button type="button" className="btn-close" onClick={() => setEditingTask(null)}></button>
+              </div>
+              <div className="modal-body">
+                <form onSubmit={handleUpdate}>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Task Description</label>
+                    <input type="text" className="form-control" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Required Role</label>
+                    <select className="form-select" value={editRole} onChange={(e) => setEditRole(e.target.value)}>
+                      <option value="employee">Employee</option>
+                      <option value="manager">Manager</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Required Skill Level</label>
+                    <input type="number" className="form-control" value={editRequiredSkill} onChange={(e) => setEditRequiredSkill(e.target.value)} min="1" max="5" required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Headcount</label>
+                    <input type="number" className="form-control" value={editHeadcount} onChange={(e) => setEditHeadcount(e.target.value)} min="1" required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Start Time</label>
+                    <input type="datetime-local" className="form-control" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} required />
+                  </div>
+                  <div className="mb-4">
+                    <label className="form-label text-muted small">End Time</label>
+                    <input type="datetime-local" className="form-control" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} required />
+                  </div>
+                  <div className="d-flex justify-content-end">
+                    <button type="button" className="btn btn-light me-2" onClick={() => setEditingTask(null)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">Save Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

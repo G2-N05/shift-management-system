@@ -5,6 +5,8 @@ import ShiftCalendar from './components/ShiftCalendar';
 import TaskManagement from './components/TaskManagement';
 import Settings from './components/Settings';
 import SwapManagement from './components/SwapManagement';
+import AttritionDashboard from './components/AttritionDashboard';
+import SuccessionPlanning from './components/SuccessionPlanning';
 
 function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('shifts');
@@ -60,6 +62,26 @@ function AdminDashboard({ onLogout }) {
                 <i className="bi bi-arrow-left-right me-2"></i> Swap Requests
               </button>
             </li>
+            
+            <li className="nav-item mt-4 mb-2">
+              <small className="text-muted fw-bold text-uppercase px-3">AI & Analytics</small>
+            </li>
+            <li className="nav-item mb-2">
+              <button 
+                className={`nav-link w-100 text-start ${activeTab === 'attrition' ? 'active bg-dark text-white' : 'text-dark hover-bg-light'}`}
+                onClick={() => setActiveTab('attrition')}
+              >
+                <i className="bi bi-activity text-danger me-2"></i> Attrition Risk
+              </button>
+            </li>
+            <li className="nav-item mb-2">
+              <button 
+                className={`nav-link w-100 text-start ${activeTab === 'succession' ? 'active bg-dark text-white' : 'text-dark hover-bg-light'}`}
+                onClick={() => setActiveTab('succession')}
+              >
+                <i className="bi bi-diagram-3 text-primary me-2"></i> Succession Plan
+              </button>
+            </li>
             <li className="nav-item mt-4 pt-3 border-top">
               <button 
                 className={`nav-link w-100 text-start ${activeTab === 'settings' ? 'active bg-dark text-white' : 'text-dark hover-bg-light'}`}
@@ -85,6 +107,8 @@ function AdminDashboard({ onLogout }) {
               {activeTab === 'shifts' && <ShiftDashboard />}
               {activeTab === 'users' && <UserList />}
               {activeTab === 'swaps' && <SwapManagement />}
+              {activeTab === 'attrition' && <AttritionDashboard />}
+              {activeTab === 'succession' && <SuccessionPlanning />}
               {activeTab === 'settings' && <Settings />}
             </main>
           </div>

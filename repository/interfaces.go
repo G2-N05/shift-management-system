@@ -7,6 +7,8 @@ type UserRepository interface {
 	FindAll() ([]*domain.User, error)
 	FindByID(id uint) (*domain.User, error)
 	FindByUsername(username string) (*domain.User, error)
+	Update(user *domain.User) error
+	Delete(id uint) error
 }
 
 type ShiftRepository interface {
@@ -23,6 +25,8 @@ type TaskRepository interface {
 	FindAll() ([]*domain.Task, error)
 	FindUnassigned() ([]*domain.Task, error)
 	Update(task *domain.Task) error
+	FindByID(id uint) (*domain.Task, error)
+	Delete(id uint) error
 }
 
 type SettingRepository interface {

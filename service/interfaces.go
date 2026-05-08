@@ -9,6 +9,8 @@ type UserService interface {
 	RegisterUser(user *domain.User) error
 	Authenticate(email, password string) (*domain.User, error)
 	GetAllUsers() ([]*domain.User, error)
+	UpdateUser(id uint, req *domain.User) error
+	DeleteUser(id uint) error
 }
 
 type ShiftService interface {
@@ -17,6 +19,8 @@ type ShiftService interface {
 	GetAllShifts() ([]*domain.Shift, error)
 	ClockIn(shiftID uint, t time.Time) error
 	ClockOut(shiftID uint, t time.Time) error
+	UpdateShift(id uint, shift *domain.Shift) error
+	DeleteShift(id uint) error
 }
 
 type TimeOffService interface {
@@ -27,6 +31,8 @@ type TimeOffService interface {
 type TaskService interface {
 	CreateTask(task *domain.Task) error
 	GetAllTasks() ([]*domain.Task, error)
+	UpdateTask(id uint, task *domain.Task) error
+	DeleteTask(id uint) error
 	AutoScheduleShifts() (int, error) // Returns number of shifts scheduled
 }
 

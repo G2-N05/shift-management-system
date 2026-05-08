@@ -33,3 +33,13 @@ func (r *taskRepo) FindUnassigned() ([]*domain.Task, error) {
 func (r *taskRepo) Update(task *domain.Task) error {
 	return r.db.Save(task).Error
 }
+
+func (r *taskRepo) FindByID(id uint) (*domain.Task, error) {
+	var task domain.Task
+	err := r.db.First(&task, id).Error
+	return &task, err
+}
+
+func (r *taskRepo) Delete(id uint) error {
+	return r.db.Delete(&domain.Task{}, id).Error
+}

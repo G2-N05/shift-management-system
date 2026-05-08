@@ -49,3 +49,20 @@ func (s *shiftService) ClockOut(shiftID uint, t time.Time) error {
 	shift.Status = "completed"
 	return s.repo.Save(shift)
 }
+
+func (s *shiftService) UpdateShift(id uint, req *domain.Shift) error {
+	shift, err := s.repo.FindByID(id)
+	if err != nil {
+		return err
+	}
+	shift.UserID = req.UserID
+	shift.StartTime = req.StartTime
+	shift.EndTime = req.EndTime
+	shift.Notes = req.Notes
+	shift.Status = req.Status
+	return s.repo.Save(shift)
+}
+
+func (s *shiftService) DeleteShift(id uint) error {
+	return s.repo.Delete(id)
+}

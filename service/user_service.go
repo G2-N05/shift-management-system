@@ -46,3 +46,20 @@ func (s *userService) Authenticate(email, password string) (*domain.User, error)
 func (s *userService) GetAllUsers() ([]*domain.User, error) {
 	return s.repo.FindAll()
 }
+
+func (s *userService) UpdateUser(id uint, req *domain.User) error {
+	user, err := s.repo.FindByID(id)
+	if err != nil {
+		return err
+	}
+	user.Name = req.Name
+	user.Email = req.Email
+	user.Role = req.Role
+	user.SkillLevel = req.SkillLevel
+	user.MaxWeeklyHours = req.MaxWeeklyHours
+	return s.repo.Update(user)
+}
+
+func (s *userService) DeleteUser(id uint) error {
+	return s.repo.Delete(id)
+}

@@ -31,6 +31,24 @@ func (s *taskService) GetAllTasks() ([]*domain.Task, error) {
 	return s.taskRepo.FindAll()
 }
 
+func (s *taskService) UpdateTask(id uint, req *domain.Task) error {
+	task, err := s.taskRepo.FindByID(id)
+	if err != nil {
+		return err
+	}
+	task.Title = req.Title
+	task.RequiredRole = req.RequiredRole
+	task.RequiredSkill = req.RequiredSkill
+	task.Headcount = req.Headcount
+	task.StartTime = req.StartTime
+	task.EndTime = req.EndTime
+	return s.taskRepo.Update(task)
+}
+
+func (s *taskService) DeleteTask(id uint) error {
+	return s.taskRepo.Delete(id)
+}
+
 func (s *taskService) AutoScheduleShifts() (int, error) {
 	unassignedTasks, err := s.taskRepo.FindUnassigned()
 	if err != nil {

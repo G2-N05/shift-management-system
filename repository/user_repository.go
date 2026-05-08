@@ -41,3 +41,11 @@ func (r *userRepo) FindAll() ([]*domain.User, error) {
 	err := r.db.Find(&users).Error
 	return users, err
 }
+
+func (r *userRepo) Update(user *domain.User) error {
+	return r.db.Save(user).Error
+}
+
+func (r *userRepo) Delete(id uint) error {
+	return r.db.Delete(&domain.User{}, id).Error
+}

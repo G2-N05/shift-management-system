@@ -8,10 +8,18 @@ function UserList() {
   const [role, setRole] = useState('employee');
   const [skillLevel, setSkillLevel] = useState(1);
   const [maxWeeklyHours, setMaxWeeklyHours] = useState(40);
-  const [risks, setRisks] = useState([]);
-  const [backupSuggestions, setBackupSuggestions] = useState([]);
-  const [showBackupModal, setShowBackupModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  
+  // Edit State
+  const [editingUser, setEditingUser] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editRole, setEditRole] = useState('employee');
+  const [editSkillLevel, setEditSkillLevel] = useState(1);
+  const [editMaxWeeklyHours, setEditMaxWeeklyHours] = useState(40);
+  
+  // Track Work State
+  const [trackingUser, setTrackingUser] = useState(null);
+  const [userShifts, setUserShifts] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -20,15 +28,10 @@ function UserList() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [usersRes, risksRes] = await Promise.all([
-        fetch('http://localhost:8080/api/users'),
-        fetch('http://localhost:8080/api/analytics/attrition')
-      ]);
-      const usersData = await usersRes.json();
-      const risksData = await risksRes.json();
+      const res = await fetch('http://localhost:8080/api/users');
+      const usersData = await res.json();
       
       if (Array.isArray(usersData)) setUsers(usersData);
-      if (Array.isArray(risksData)) setRisks(risksData);
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {
@@ -36,28 +39,57 @@ function UserList() {
     }
   };
 
-  const handleFindBackup = async (user) => {
-    setSelectedUser(user);
-    setShowBackupModal(true);
-    setBackupSuggestions([]);
+  const handleEditClick = (user) => {
+    setEditingUser(user);
+    setEditName(user.Name);
+    setEditEmail(user.Email);
+    setEditRole(user.Role);
+    setEditSkillLevel(user.SkillLevel);
+    setEditMaxWeeklyHours(user.MaxWeeklyHours);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:8080/api/analytics/backups/${user.ID}`);
-      const data = await res.json();
-      if (Array.isArray(data)) setBackupSuggestions(data);
+      await fetch(`http://localhost:8080/api/users/${editingUser.ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          name: editName, 
+          email: editEmail, 
+          role: editRole, 
+          skillLevel: parseInt(editSkillLevel), 
+          maxWeeklyHours: parseInt(editMaxWeeklyHours) 
+        })
+      });
+      setEditingUser(null);
+      fetchData();
     } catch (err) {
       console.error(err);
     }
   };
 
-  const fetchUsers = async () => {
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      const res = await fetch('http://localhost:8080/api/users');
-      const data = await res.json();
-      if (Array.isArray(data)) setUsers(data);
+      await fetch(`http://localhost:8080/api/users/${id}`, { method: 'DELETE' });
+      fetchData();
     } catch (err) {
-      console.error('Failed to fetch users:', err);
-    } finally {
-      setLoading(false);
+      console.error(err);
+    }
+  };
+
+  const handleTrackWork = async (user) => {
+    setTrackingUser(user);
+    setUserShifts([]);
+    try {
+      const res = await fetch('http://localhost:8080/api/shifts');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setUserShifts(data.filter(s => s.UserID === user.ID));
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -156,16 +188,11 @@ function UserList() {
                     <th>Role</th>
                     <th>Skill</th>
                     <th>Max Hrs</th>
-                    <th>Burnout Risk</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map(u => {
-                    const risk = risks.find(r => r.UserID === u.ID) || { BurnoutScore: 0, RiskLevel: 'Low' };
-                    let badgeClass = 'bg-success';
-                    if (risk.RiskLevel === 'Medium') badgeClass = 'bg-warning text-dark';
-                    if (risk.RiskLevel === 'High') badgeClass = 'bg-danger';
-
                     return (
                       <tr key={u.ID}>
                         <td className="px-4 text-muted">#{u.ID}</td>
@@ -179,14 +206,15 @@ function UserList() {
                         <td>Level {u.SkillLevel || 1}</td>
                         <td>{u.MaxWeeklyHours || 40}h</td>
                         <td>
-                          <span className={`badge ${badgeClass} me-2`}>
-                            {risk.BurnoutScore}% ({risk.RiskLevel})
-                          </span>
-                          {risk.RiskLevel === 'High' && (
-                            <button className="btn btn-sm btn-outline-danger py-0 px-2" onClick={() => handleFindBackup(u)}>
-                              Find Backup
-                            </button>
-                          )}
+                          <button className="btn btn-sm btn-outline-info py-0 px-2 me-1" onClick={() => handleTrackWork(u)}>
+                            Track
+                          </button>
+                          <button className="btn btn-sm btn-outline-primary py-0 px-2 me-1" onClick={() => handleEditClick(u)}>
+                            Edit
+                          </button>
+                          <button className="btn btn-sm btn-outline-danger py-0 px-2" onClick={() => handleDelete(u.ID)}>
+                            Del
+                          </button>
                         </td>
                       </tr>
                     );
@@ -201,34 +229,75 @@ function UserList() {
         </div>
       </div>
 
-      {showBackupModal && (
+      {editingUser && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog">
             <div className="modal-content border-0 shadow">
-              <div className="modal-header bg-danger text-white">
-                <h5 className="modal-title">Backup Plan for {selectedUser?.Name}</h5>
-                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBackupModal(false)}></button>
+              <div className="modal-header">
+                <h5 className="modal-title">Edit User #{editingUser.ID}</h5>
+                <button type="button" className="btn-close" onClick={() => setEditingUser(null)}></button>
+              </div>
+              <div className="modal-body">
+                <form onSubmit={handleUpdate}>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Full Name</label>
+                    <input type="text" className="form-control" value={editName} onChange={(e) => setEditName(e.target.value)} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Email Address</label>
+                    <input type="email" className="form-control" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Role</label>
+                    <select className="form-select" value={editRole} onChange={(e) => setEditRole(e.target.value)}>
+                      <option value="employee">Employee</option>
+                      <option value="manager">Manager</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Skill Level (1-5)</label>
+                    <input type="number" className="form-control" value={editSkillLevel} onChange={(e) => setEditSkillLevel(e.target.value)} min="1" max="5" required />
+                  </div>
+                  <div className="mb-4">
+                    <label className="form-label text-muted small">Max Weekly OT Limit (Hours)</label>
+                    <input type="number" className="form-control" value={editMaxWeeklyHours} onChange={(e) => setEditMaxWeeklyHours(e.target.value)} min="1" max="100" required />
+                  </div>
+                  <div className="d-flex justify-content-end">
+                    <button type="button" className="btn btn-light me-2" onClick={() => setEditingUser(null)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">Save Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {trackingUser && (
+        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content border-0 shadow">
+              <div className="modal-header bg-info text-white">
+                <h5 className="modal-title">Work Tracking: {trackingUser.Name}</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setTrackingUser(null)}></button>
               </div>
               <div className="modal-body p-0">
-                <div className="p-3 bg-light border-bottom">
-                  <p className="mb-0 text-muted small">The system has scanned the database for active employees with Level {selectedUser?.SkillLevel}+ skills who currently have low workloads.</p>
-                </div>
                 <div className="list-group list-group-flush">
-                  {backupSuggestions.length === 0 ? (
-                    <div className="p-4 text-center text-muted">Scanning for eligible backups...</div>
+                  {userShifts.length === 0 ? (
+                    <div className="p-4 text-center text-muted">No shifts assigned to this user.</div>
                   ) : (
-                    backupSuggestions.map(b => (
-                      <div key={b.User.ID} className="list-group-item d-flex justify-content-between align-items-center p-3">
-                        <div>
-                          <div className="fw-bold">{b.User.Name}</div>
-                          <div className="text-success small">
-                            <i className="bi bi-check-circle-fill me-1"></i>
-                            {b.MatchReason} (Level {b.User.SkillLevel})
-                          </div>
+                    userShifts.map(s => (
+                      <div key={s.ID} className="list-group-item p-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <span className="fw-bold">{s.Notes || `Shift #${s.ID}`}</span>
+                          <span className={`badge ${s.Status === 'completed' ? 'bg-success' : s.Status === 'in_progress' ? 'bg-warning' : 'bg-primary'}`}>
+                            {s.Status}
+                          </span>
                         </div>
-                        <div className="text-end">
-                          <span className="badge bg-success mb-1">Burnout: {b.BurnoutScore}%</span><br/>
-                          <button className="btn btn-sm btn-primary">Assign to On-Call</button>
+                        <div className="text-muted small">
+                          <i className="bi bi-calendar-event me-2"></i>
+                          {new Date(s.StartTime).toLocaleString()} - {new Date(s.EndTime).toLocaleTimeString()}
                         </div>
                       </div>
                     ))
