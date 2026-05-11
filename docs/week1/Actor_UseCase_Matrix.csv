@@ -1,0 +1,17 @@
+ Mã UC | Tên Use Case | Manager | Employee | Scheduler Engine | Auth Service | Notification Service 
+--- | --- | --- | --- | --- | --- | ---
+**UC-01** | Đăng nhập | x | x | | x | 
+**UC-02** | Quản lý nhân viên | x | | | | 
+**UC-03** | Quản lý phòng ban | x | | | | 
+**UC-04** | Thiết lập ca | x | | | | 
+**UC-05** | Thiết lập ràng buộc | x | | | | 
+**UC-06** | Tạo kỳ lập lịch | x | | | | 
+**UC-07** | Sinh lịch tự động | x | | x | | 
+**UC-08** | Chỉnh sửa lịch thủ công | x | | | | 
+**UC-09** | Duyệt đổi ca | x | | | | x 
+**UC-10** | Xem lịch tổng | x | | | | 
+**UC-11** | Xem báo cáo | x | | | | 
+**UC-12** | Xuất báo cáo | x | | | | 
+**UC-13** | Xem lịch cá nhân | | x | | | 
+**UC-14** | Gửi yêu cầu đổi ca | | x | | | x 
+**UC-15** | Nhận thông báo | x | x | | | x 
