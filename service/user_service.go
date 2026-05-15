@@ -47,6 +47,10 @@ func (s *userService) GetAllUsers() ([]*domain.User, error) {
 	return s.repo.FindAll()
 }
 
+func (s *userService) GetUserByID(id uint) (*domain.User, error) {
+	return s.repo.FindByID(id)
+}
+
 func (s *userService) UpdateUser(id uint, req *domain.User) error {
 	user, err := s.repo.FindByID(id)
 	if err != nil {

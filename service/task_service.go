@@ -71,7 +71,9 @@ func (s *taskService) AutoScheduleShifts() (int, error) {
 	maxHours := 8.0
 	minRest := 11.0
 	if setting != nil {
-		if setting.MaxShiftHours > 0 {
+		if setting.FullShiftHours > 0 {
+			maxHours = setting.FullShiftHours
+		} else if setting.MaxShiftHours > 0 {
 			maxHours = setting.MaxShiftHours
 		}
 		if setting.MinRestHours > 0 {
@@ -83,13 +85,20 @@ func (s *taskService) AutoScheduleShifts() (int, error) {
 	shiftsScheduled := 0
 
 	for _, task := range unassignedTasks {
-		taskDuration := task.EndTime.Sub(task.StartTime).Hours()
+		currentStartTime := task.StartTime
+		if currentStartTime.Before(time.Now()) {
+			currentStartTime = time.Now()
+		}
+
+		taskDuration := task.EndTime.Sub(currentStartTime).Hours()
+		if taskDuration <= 0 {
+			continue
+		}
+
 		shiftsNeeded := int(taskDuration / maxHours)
 		if taskDuration > float64(shiftsNeeded)*maxHours {
 			shiftsNeeded++
 		}
-
-		currentStartTime := task.StartTime
 		
 		for i := 0; i < shiftsNeeded; i++ {
 			shiftDuration := maxHours
@@ -158,4 +167,32 @@ func (s *taskService) AutoScheduleShifts() (int, error) {
 	}
 
 	return shiftsScheduled, nil
+}
+
+func (s *taskService) ReScheduleShifts() (int, error) {
+	now := time.Now()
+	
+	// 1. Delete all future shifts that are "scheduled"
+	allShifts, err := s.shiftRepo.FindAll()
+	if err == nil {
+		for _, shift := range allShifts {
+			if shift.Status == "scheduled" && shift.StartTime.After(now) {
+				s.shiftRepo.Delete(shift.ID)
+			}
+		}
+	}
+
+	// 2. Mark future tasks as unassigned so they are re-evaluated
+	allTasks, err := s.taskRepo.FindAll()
+	if err == nil {
+		for _, task := range allTasks {
+			if task.IsAssigned && task.EndTime.After(now) {
+				task.IsAssigned = false
+				s.taskRepo.Update(task)
+			}
+		}
+	}
+
+	// 3. Run AutoSchedule to generate new shifts
+	return s.AutoScheduleShifts()
 }

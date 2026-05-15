@@ -22,3 +22,6 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Database
+shift_management.db

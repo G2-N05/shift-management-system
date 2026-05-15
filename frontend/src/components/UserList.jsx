@@ -188,6 +188,7 @@ function UserList() {
                     <th>Role</th>
                     <th>Skill</th>
                     <th>Max Hrs</th>
+                    <th>Energy</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -205,6 +206,21 @@ function UserList() {
                         </td>
                         <td>Level {u.SkillLevel || 1}</td>
                         <td>{u.MaxWeeklyHours || 40}h</td>
+                        <td style={{width: '150px'}}>
+                          <div className="d-flex align-items-center">
+                            <div className="progress flex-grow-1" style={{height: '8px'}}>
+                              <div 
+                                className={`progress-bar ${u.EnergyScore > 70 ? 'bg-success' : u.EnergyScore > 40 ? 'bg-warning' : 'bg-danger'}`} 
+                                role="progressbar" 
+                                style={{width: `${Math.max(0, Math.min(100, u.EnergyScore !== undefined ? u.EnergyScore : 100))}%`}}
+                                aria-valuenow={u.EnergyScore || 100} 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                              </div>
+                            </div>
+                            <span className="ms-2 small fw-bold">{u.EnergyScore !== undefined ? u.EnergyScore : 100}</span>
+                          </div>
+                        </td>
                         <td>
                           <button className="btn btn-sm btn-outline-info py-0 px-2 me-1" onClick={() => handleTrackWork(u)}>
                             Track
@@ -220,7 +236,7 @@ function UserList() {
                     );
                   })}
                   {users.length === 0 && (
-                    <tr><td colSpan="7" className="text-center py-4 text-muted">No users found. Add some!</td></tr>
+                    <tr><td colSpan="8" className="text-center py-4 text-muted">No users found. Add some!</td></tr>
                   )}
                 </tbody>
               </table>

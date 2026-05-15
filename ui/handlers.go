@@ -9,6 +9,8 @@ import (
 	"shift-management/service"
 
 	"github.com/gin-gonic/gin"
+	"path/filepath"
+	"os"
 )
 
 type Handler struct {
@@ -19,9 +21,10 @@ type Handler struct {
 	authService    service.AuthService
 	swapService    service.ShiftSwapService
 	analyticsService service.AnalyticsService
+	healthService    service.HealthService
 }
 
-func NewHandler(us service.UserService, ss service.ShiftService, ts service.TaskService, set service.SettingService, as service.AuthService, swap service.ShiftSwapService, analytics service.AnalyticsService) *Handler {
+func NewHandler(us service.UserService, ss service.ShiftService, ts service.TaskService, set service.SettingService, as service.AuthService, swap service.ShiftSwapService, analytics service.AnalyticsService, hs service.HealthService) *Handler {
 	return &Handler{
 		userService:    us,
 		shiftService:   ss,
@@ -30,6 +33,7 @@ func NewHandler(us service.UserService, ss service.ShiftService, ts service.Task
 		authService:    as,
 		swapService:    swap,
 		analyticsService: analytics,
+		healthService:    hs,
 	}
 }
 
@@ -73,6 +77,38 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+func (h *Handler) GetMe(c *gin.Context) {
+	userIDStr, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userIDFloat, ok := userIDStr.(float64)
+	if !ok {
+		// Sometimes it might be parsed as string depending on JWT library config
+		if str, okStr := userIDStr.(string); okStr {
+			parsed, err := strconv.ParseUint(str, 10, 32)
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id format"})
+				return
+			}
+			userIDFloat = float64(parsed)
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id type in token"})
+			return
+		}
+	}
+
+	user, err := h.userService.GetUserByID(uint(userIDFloat))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func (h *Handler) CreateUser(c *gin.Context) {
@@ -225,6 +261,15 @@ func (h *Handler) AutoSchedule(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Auto-scheduling complete", "shiftsScheduled": count})
 }
 
+func (h *Handler) ReSchedule(c *gin.Context) {
+	count, err := h.taskService.ReScheduleShifts()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Re-scheduling complete", "shiftsScheduled": count})
+}
+
 func (h *Handler) GetSetting(c *gin.Context) {
 	setting, err := h.settingService.GetSetting()
 	if err != nil {
@@ -235,14 +280,12 @@ func (h *Handler) GetSetting(c *gin.Context) {
 }
 
 func (h *Handler) UpdateSetting(c *gin.Context) {
-	var input struct {
-		MaxShiftHours float64 `json:"MaxShiftHours"`
-	}
+	var input domain.SystemSetting
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.settingService.UpdateSetting(input.MaxShiftHours); err != nil {
+	if err := h.settingService.UpdateSetting(&input); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -388,4 +431,91 @@ func (h *Handler) GetBackupSuggestions(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, suggestions)
+}
+
+func (h *Handler) SubmitHealthDeclaration(c *gin.Context) {
+	// Parse multipart form
+	userIDStr := c.PostForm("UserID")
+	condition := c.PostForm("Condition")
+	
+	userID, _ := strconv.ParseUint(userIDStr, 10, 32)
+	
+	file, err := c.FormFile("ProofFile")
+	var proofPath string
+	if err == nil {
+		os.MkdirAll("uploads", os.ModePerm)
+		filename := filepath.Base(file.Filename)
+		proofPath = "uploads/" + strconv.FormatInt(time.Now().Unix(), 10) + "_" + filename
+		if err := c.SaveUploadedFile(file, proofPath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save file"})
+			return
+		}
+	}
+	
+	decl := &domain.HealthDeclaration{
+		UserID:    uint(userID),
+		Condition: condition,
+		ProofFile: proofPath,
+	}
+	
+	if err := h.healthService.SubmitDeclaration(decl); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	
+	c.JSON(http.StatusCreated, decl)
+}
+
+func (h *Handler) GetPendingHealthDeclarations(c *gin.Context) {
+	decls, err := h.healthService.GetPendingDeclarations()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, decls)
+}
+
+func (h *Handler) ApproveHealthDeclaration(c *gin.Context) {
+	idStr := c.Param("id")
+	id, _ := strconv.ParseUint(idStr, 10, 32)
+	
+	var input struct {
+		PointsDeducted int    `json:"PointsDeducted"`
+		AdminNotes     string `json:"AdminNotes"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+	if err := h.healthService.ApproveDeclaration(uint(id), input.PointsDeducted, input.AdminNotes); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Declaration approved"})
+}
+
+func (h *Handler) RejectHealthDeclaration(c *gin.Context) {
+	idStr := c.Param("id")
+	id, _ := strconv.ParseUint(idStr, 10, 32)
+	
+	var input struct {
+		AdminNotes string `json:"AdminNotes"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+	if err := h.healthService.RejectDeclaration(uint(id), input.AdminNotes); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Declaration rejected"})
+}
+
+func (h *Handler) SuggestHealthPoints(c *gin.Context) {
+	condition := c.Query("condition")
+	points := h.healthService.SuggestPoints(condition)
+	c.JSON(http.StatusOK, gin.H{"SuggestedPoints": points})
 }

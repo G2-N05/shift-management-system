@@ -158,12 +158,21 @@ function TaskManagement() {
                 />
               </div>
               <div className="mb-3">
-                <label className="form-label text-muted small">Start Time</label>
+                  <label className="form-label text-muted small">Start Time</label>
                 <input 
                   type="datetime-local" 
                   className="form-control"
                   value={startTime} 
-                  onChange={(e) => setStartTime(e.target.value)} 
+                  onChange={(e) => {
+                    const newStart = e.target.value;
+                    setStartTime(newStart);
+                    if (!endTime || new Date(newStart) > new Date(endTime)) {
+                      const d = new Date(newStart);
+                      d.setHours(d.getHours() + 8);
+                      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                      setEndTime(d.toISOString().slice(0, 16));
+                    }
+                  }} 
                   required 
                 />
               </div>
@@ -213,7 +222,7 @@ function TaskManagement() {
                       <td>{t.Headcount || 1} people</td>
                       <td className="text-muted">
                         {new Date(t.StartTime).toLocaleString()} <br/>
-                        to {new Date(t.EndTime).toLocaleTimeString()}
+                        to {new Date(t.EndTime).toLocaleString()}
                       </td>
                       <td>
                         {t.IsAssigned ? (

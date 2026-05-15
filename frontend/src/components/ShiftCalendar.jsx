@@ -22,7 +22,6 @@ function ShiftCalendar() {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState('week');
-  const [zoomStep, setZoomStep] = useState(30); // minutes per slot
   
   // Edit Shift State
   const [editingShift, setEditingShift] = useState(null);
@@ -34,7 +33,7 @@ function ShiftCalendar() {
 
   useEffect(() => {
     fetchData();
-    // Auto-refresh every 5 seconds since backend is auto-scheduling
+    // Auto-refresh every 5 seconds
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -51,8 +50,7 @@ function ShiftCalendar() {
       if (Array.isArray(usersData)) setUsers(usersData);
       
       if (Array.isArray(shiftsData)) {
-        // Map shifts to React-Big-Calendar format
-        const events = shiftsData.map(s => {
+        let events = shiftsData.map(s => {
           const user = usersData.find(u => u.ID === s.UserID);
           const userName = user ? user.Name : `User #${s.UserID}`;
           return {
@@ -62,6 +60,35 @@ function ShiftCalendar() {
             resource: s,
           };
         });
+
+        // Group by user to calculate breaks
+        const userShifts = {};
+        shiftsData.forEach(s => {
+          if (!userShifts[s.UserID]) userShifts[s.UserID] = [];
+          userShifts[s.UserID].push(s);
+        });
+
+        Object.keys(userShifts).forEach(uid => {
+          const sorted = userShifts[uid].sort((a, b) => new Date(a.StartTime) - new Date(b.StartTime));
+          const user = usersData.find(u => u.ID === parseInt(uid));
+          const userName = user ? user.Name : `User #${uid}`;
+          
+          for (let i = 0; i < sorted.length - 1; i++) {
+            const endCurrent = new Date(sorted[i].EndTime);
+            const startNext = new Date(sorted[i+1].StartTime);
+            
+            // Only draw break if there is a gap
+            if (endCurrent < startNext) {
+              events.push({
+                title: `🛌 ${userName} - Rest Period`,
+                start: endCurrent,
+                end: startNext,
+                resource: { Status: 'break' }
+              });
+            }
+          }
+        });
+
         setShifts(events);
       }
     } catch (err) {
@@ -70,7 +97,47 @@ function ShiftCalendar() {
       setLoading(false);
     }
   };
+
+  const handleReschedule = async () => {
+    if (!window.confirm("Are you sure you want to run the auto-scheduler? This will wipe all future shifts and generate new ones using the latest staff.")) return;
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:8080/api/tasks/re-schedule', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert(`Success! Generated ${data.shiftsScheduled} new shifts.`);
+        fetchData();
+      } else {
+        alert('Failed to run auto-scheduler.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error connecting to server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const eventStyleGetter = (event) => {
+    if (event.resource && event.resource.Status === 'break') {
+      return {
+        style: {
+          backgroundColor: '#e9ecef',
+          color: '#6c757d',
+          border: '1px dashed #adb5bd',
+          opacity: 0.7,
+          borderRadius: '6px',
+          display: 'block',
+          fontSize: '0.85rem'
+        }
+      };
+    }
+
     let backgroundColor = '#3174ad'; // Default blue
     if (event.resource.Status === 'completed') {
       backgroundColor = '#198754'; // Success green
@@ -94,6 +161,7 @@ function ShiftCalendar() {
   };
 
   const handleSelectEvent = (event) => {
+    if (event.resource && event.resource.Status === 'break') return;
     const s = event.resource;
     setEditingShift(s);
     setEditUserId(s.UserID);
@@ -144,42 +212,31 @@ function ShiftCalendar() {
   };
 
   return (
-    <div className="card h-100 shadow-sm border-0">
-      <div className="card-header d-flex justify-content-between align-items-center bg-white border-bottom py-3">
-        <span className="fw-bold">Interactive Calendar Board</span>
+    <div className="card h-100 shadow-sm border-0 d-flex flex-column">
+      <div className="card-header d-flex justify-content-between align-items-center bg-white border-bottom py-3 flex-shrink-0">
+        <span className="fw-bold">Weekly Calendar Board</span>
+        
         <div className="d-flex align-items-center gap-3">
-          {currentView !== 'month' && (
-            <div className="d-flex align-items-center">
-              <span className="text-muted small me-2">Zoom:</span>
-              <div className="btn-group btn-group-sm">
-                <button className={`btn ${zoomStep === 60 ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setZoomStep(60)}>Out</button>
-                <button className={`btn ${zoomStep === 30 ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setZoomStep(30)}>Norm</button>
-                <button className={`btn ${zoomStep === 15 ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setZoomStep(15)}>In</button>
-              </div>
-            </div>
-          )}
-          <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2">
-            <div className="spinner-grow spinner-grow-sm me-2" role="status" style={{width: '0.7rem', height: '0.7rem'}}>
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            Auto-Scheduler Running
-          </span>
+          <button className="btn btn-primary btn-sm px-3 fw-bold" onClick={handleReschedule}>
+            <i className="bi bi-magic me-2"></i> Auto-Schedule
+          </button>
         </div>
       </div>
-      <div className="card-body p-3" style={{ height: '70vh' }}>
+      
+      <div className="card-body p-3 flex-grow-1 overflow-auto" style={{ minHeight: '70vh' }}>
         {loading && shifts.length === 0 ? <div className="p-4 text-center text-muted">Loading calendar...</div> : (
           <Calendar
             localizer={localizer}
             events={shifts}
             startAccessor="start"
             endAccessor="end"
-            style={{ height: '100%' }}
+            style={{ height: '100%', minHeight: '600px' }}
             view={currentView}
             onView={setCurrentView}
             date={currentDate}
             onNavigate={setCurrentDate}
             views={['month', 'week', 'day']}
-            step={zoomStep}
+            step={30}
             timeslots={2}
             showMultiDayTimes
             dayLayoutAlgorithm="no-overlap"
@@ -190,7 +247,7 @@ function ShiftCalendar() {
       </div>
 
       {editingShift && (
-        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal d-block z-3" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
           <div className="modal-dialog">
             <div className="modal-content border-0 shadow">
               <div className="modal-header">

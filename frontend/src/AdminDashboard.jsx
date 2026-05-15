@@ -7,6 +7,7 @@ import Settings from './components/Settings';
 import SwapManagement from './components/SwapManagement';
 import AttritionDashboard from './components/AttritionDashboard';
 import SuccessionPlanning from './components/SuccessionPlanning';
+import HealthManagement from './components/HealthManagement';
 
 function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('shifts');
@@ -82,6 +83,14 @@ function AdminDashboard({ onLogout }) {
                 <i className="bi bi-diagram-3 text-primary me-2"></i> Succession Plan
               </button>
             </li>
+            <li className="nav-item mb-2">
+              <button 
+                className={`nav-link w-100 text-start ${activeTab === 'health' ? 'active bg-dark text-white' : 'text-dark hover-bg-light'}`}
+                onClick={() => setActiveTab('health')}
+              >
+                <i className="bi bi-heart-pulse text-success me-2"></i> Health & Energy
+              </button>
+            </li>
             <li className="nav-item mt-4 pt-3 border-top">
               <button 
                 className={`nav-link w-100 text-start ${activeTab === 'settings' ? 'active bg-dark text-white' : 'text-dark hover-bg-light'}`}
@@ -109,6 +118,7 @@ function AdminDashboard({ onLogout }) {
               {activeTab === 'swaps' && <SwapManagement />}
               {activeTab === 'attrition' && <AttritionDashboard />}
               {activeTab === 'succession' && <SuccessionPlanning />}
+              {activeTab === 'health' && <HealthManagement />}
               {activeTab === 'settings' && <Settings />}
             </main>
           </div>

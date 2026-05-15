@@ -30,8 +30,10 @@ func main() {
 	swapService := service.NewShiftSwapService(swapRepo, shiftRepo, userRepo, settingRepo)
 	analyticsService := service.NewAnalyticsService(userRepo, shiftRepo)
 
+	healthService := service.NewHealthService(config.DB)
+
 	// Setup UI / API Handlers
-	handler := ui.NewHandler(userService, shiftService, taskService, settingService, authService, swapService, analyticsService)
+	handler := ui.NewHandler(userService, shiftService, taskService, settingService, authService, swapService, analyticsService, healthService)
 	router := ui.SetupRouter(handler)
 
 	// Background Auto-Scheduling Job

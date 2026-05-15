@@ -25,9 +25,12 @@ func (e *RuleEngine) IsValid(user *domain.User, userShifts []domain.Shift, requi
 
 	// 2. Calculate Weekly Hours & OT Limit
 	var weeklyHours float64
+	yTarget, wTarget := startTime.ISOWeek()
 	for _, s := range userShifts {
-		// Basic check: sum all shifts (in a real app, limit to current week)
-		weeklyHours += s.EndTime.Sub(s.StartTime).Hours()
+		yShift, wShift := s.StartTime.ISOWeek()
+		if yShift == yTarget && wShift == wTarget {
+			weeklyHours += s.EndTime.Sub(s.StartTime).Hours()
+		}
 	}
 	shiftDuration := endTime.Sub(startTime).Hours()
 	if weeklyHours+shiftDuration > float64(user.MaxWeeklyHours) {
@@ -67,8 +70,12 @@ func (e *RuleEngine) CalculateScore(user *domain.User, userShifts []domain.Shift
 	
 	// Penalize users who already have a lot of hours (Balance workload)
 	var weeklyHours float64
+	yTarget, wTarget := time.Now().ISOWeek()
 	for _, s := range userShifts {
-		weeklyHours += s.EndTime.Sub(s.StartTime).Hours()
+		yShift, wShift := s.StartTime.ISOWeek()
+		if yShift == yTarget && wShift == wTarget {
+			weeklyHours += s.EndTime.Sub(s.StartTime).Hours()
+		}
 	}
 	score -= int(weeklyHours * 2) // deduct 2 points per hour worked
 

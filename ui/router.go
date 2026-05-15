@@ -21,6 +21,7 @@ func SetupRouter(handler *Handler) *gin.Engine {
 		protected := api.Group("/")
 		protected.Use(AuthMiddleware())
 		{
+			protected.GET("/users/me", handler.GetMe)
 			protected.GET("/users", handler.GetUsers)
 			protected.POST("/users", handler.CreateUser)
 			protected.PUT("/users/:id", handler.UpdateUser)
@@ -38,6 +39,7 @@ func SetupRouter(handler *Handler) *gin.Engine {
 			protected.PUT("/tasks/:id", handler.UpdateTask)
 			protected.DELETE("/tasks/:id", handler.DeleteTask)
 			protected.POST("/tasks/auto-schedule", handler.AutoSchedule)
+			protected.POST("/tasks/re-schedule", handler.ReSchedule)
 			
 			protected.GET("/settings", handler.GetSetting)
 			protected.PUT("/settings", handler.UpdateSetting)
@@ -50,6 +52,12 @@ func SetupRouter(handler *Handler) *gin.Engine {
 
 			protected.GET("/analytics/attrition", handler.GetAttritionRisks)
 			protected.GET("/analytics/backups/:id", handler.GetBackupSuggestions)
+
+			protected.POST("/health", handler.SubmitHealthDeclaration)
+			protected.GET("/health/pending", handler.GetPendingHealthDeclarations)
+			protected.POST("/health/:id/approve", handler.ApproveHealthDeclaration)
+			protected.POST("/health/:id/reject", handler.RejectHealthDeclaration)
+			protected.GET("/health/ai-suggest", handler.SuggestHealthPoints)
 		}
 	}
 

@@ -9,6 +9,7 @@ type UserService interface {
 	RegisterUser(user *domain.User) error
 	Authenticate(email, password string) (*domain.User, error)
 	GetAllUsers() ([]*domain.User, error)
+	GetUserByID(id uint) (*domain.User, error)
 	UpdateUser(id uint, req *domain.User) error
 	DeleteUser(id uint) error
 }
@@ -33,12 +34,13 @@ type TaskService interface {
 	GetAllTasks() ([]*domain.Task, error)
 	UpdateTask(id uint, task *domain.Task) error
 	DeleteTask(id uint) error
-	AutoScheduleShifts() (int, error) // Returns number of shifts scheduled
+	AutoScheduleShifts() (int, error)
+	ReScheduleShifts() (int, error) // Returns number of shifts scheduled
 }
 
 type SettingService interface {
 	GetSetting() (*domain.SystemSetting, error)
-	UpdateSetting(maxHours float64) error
+	UpdateSetting(setting *domain.SystemSetting) error
 }
 
 type ShiftSwapService interface {
@@ -52,4 +54,12 @@ type ShiftSwapService interface {
 type AnalyticsService interface {
 	GetAttritionRisks() ([]*domain.AttritionRisk, error)
 	GetBackupSuggestions(targetUserID uint) ([]*domain.BackupSuggestion, error)
+}
+
+type HealthService interface {
+	SubmitDeclaration(decl *domain.HealthDeclaration) error
+	GetPendingDeclarations() ([]*domain.HealthDeclaration, error)
+	SuggestPoints(condition string) int
+	ApproveDeclaration(id uint, pointsDeducted int, adminNotes string) error
+	RejectDeclaration(id uint, adminNotes string) error
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         primaryColor: CupertinoColors.activeBlue,
         scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
       ),
-      home: initialToken != null ? const HomeScreen() : const LoginScreen(),
+      home: initialToken != null ? const MainScreen() : const LoginScreen(),
     );
   }
 }
