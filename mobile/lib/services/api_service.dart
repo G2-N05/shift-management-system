@@ -178,4 +178,49 @@ class ApiService {
       return false;
     }
   }
+
+  static Future<bool> requestTimeOff(DateTime start, DateTime end, double durationHours, String reason) async {
+    final token = await getToken();
+    if (token == null) return false;
+    
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/time-off'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode({
+          'StartDate': start.toIso8601String(),
+          'EndDate': end.toIso8601String(),
+          'DurationHours': durationHours,
+          'Reason': reason
+        }),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("requestTimeOff error: $e");
+      return false;
+    }
+  }
+
+  static Future<List<dynamic>> getMyTimeOffRequests() async {
+    final token = await getToken();
+    if (token == null) return [];
+    
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/time-off/my'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+    } catch (e) {
+      print("getMyTimeOffRequests error: $e");
+    }
+    return [];
+  }
 }

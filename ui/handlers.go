@@ -22,18 +22,28 @@ type Handler struct {
 	swapService    service.ShiftSwapService
 	analyticsService service.AnalyticsService
 	healthService    service.HealthService
+	coordService     service.CoordinationService
+	kpiService       *service.KPIService
+	payrollService   *service.PayrollService
+	dataService      *service.DataService
+	timeOffService   service.TimeOffService
 }
 
-func NewHandler(us service.UserService, ss service.ShiftService, ts service.TaskService, set service.SettingService, as service.AuthService, swap service.ShiftSwapService, analytics service.AnalyticsService, hs service.HealthService) *Handler {
+func NewHandler(us service.UserService, ss service.ShiftService, ts service.TaskService, set service.SettingService, as service.AuthService, swap service.ShiftSwapService, analytics service.AnalyticsService, hs service.HealthService, cs service.CoordinationService, kpi *service.KPIService, pay *service.PayrollService, data *service.DataService, timeOff service.TimeOffService) *Handler {
 	return &Handler{
-		userService:    us,
-		shiftService:   ss,
-		taskService:    ts,
-		settingService: set,
-		authService:    as,
-		swapService:    swap,
+		userService:      us,
+		shiftService:     ss,
+		taskService:      ts,
+		settingService:   set,
+		authService:      as,
+		swapService:      swap,
 		analyticsService: analytics,
 		healthService:    hs,
+		coordService:     cs,
+		kpiService:       kpi,
+		payrollService:   pay,
+		dataService:      data,
+		timeOffService:   timeOff,
 	}
 }
 
@@ -511,6 +521,28 @@ func (h *Handler) GetKnownHealthConditions(c *gin.Context) {
 	c.JSON(http.StatusOK, conditions)
 }
 
+func (h *Handler) UpdateKnownCondition(c *gin.Context) {
+	idStr := c.Param("id")
+	id, _ := strconv.Atoi(idStr)
+	
+	var req struct {
+		Condition      string `json:"Condition"`
+		PointsDeducted int    `json:"PointsDeducted"`
+	}
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+	if err := h.healthService.UpdateKnownCondition(uint(id), req.Condition, req.PointsDeducted); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"message": "Condition updated successfully"})
+}
+
 func (h *Handler) ApproveHealthDeclaration(c *gin.Context) {
 	idStr := c.Param("id")
 	id, _ := strconv.ParseUint(idStr, 10, 32)
@@ -555,3 +587,211 @@ func (h *Handler) SuggestHealthPoints(c *gin.Context) {
 	points := h.healthService.SuggestPoints(condition)
 	c.JSON(http.StatusOK, gin.H{"SuggestedPoints": points})
 }
+
+func (h *Handler) GetUnderstaffedTasks(c *gin.Context) {
+	// First, detect and update status
+	if err := h.coordService.DetectUnderstaffedTasks(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Fetch all tasks and filter
+	tasks, err := h.taskService.GetAllTasks()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var understaffed []*domain.Task
+	for _, t := range tasks {
+		if t.CoordinationStatus == "Understaffed" {
+			understaffed = append(understaffed, t)
+		}
+	}
+	c.JSON(http.StatusOK, understaffed)
+}
+
+func (h *Handler) GetCoordinationSuggestions(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid task id"})
+		return
+	}
+
+	suggestions, err := h.coordService.GenerateSuggestions(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, suggestions)
+}
+
+func (h *Handler) ApproveCoordinationSuggestion(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid suggestion id"})
+		return
+	}
+
+	if err := h.coordService.ApplySuggestion(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Suggestion applied successfully"})
+}
+
+func (h *Handler) GetKPIs(c *gin.Context) {
+	monthStr := c.Query("month")
+	yearStr := c.Query("year")
+	month, _ := strconv.Atoi(monthStr)
+	year, _ := strconv.Atoi(yearStr)
+
+	if month == 0 || year == 0 {
+		now := time.Now()
+		month = int(now.Month())
+		year = now.Year()
+	}
+
+	kpis, err := h.kpiService.GetAllKPIs(month, year)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, kpis)
+}
+
+func (h *Handler) SaveKPI(c *gin.Context) {
+	var kpi domain.UserKPI
+	if err := c.ShouldBindJSON(&kpi); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.kpiService.SaveKPI(&kpi); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, kpi)
+}
+
+func (h *Handler) CalculatePayroll(c *gin.Context) {
+	monthStr := c.Query("month")
+	yearStr := c.Query("year")
+	month, _ := strconv.Atoi(monthStr)
+	year, _ := strconv.Atoi(yearStr)
+
+	if month == 0 || year == 0 {
+		now := time.Now()
+		month = int(now.Month())
+		year = now.Year()
+	}
+
+	records, err := h.payrollService.CalculatePayroll(month, year)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, records)
+}
+
+func (h *Handler) GetPayroll(c *gin.Context) {
+	monthStr := c.Query("month")
+	yearStr := c.Query("year")
+	month, _ := strconv.Atoi(monthStr)
+	year, _ := strconv.Atoi(yearStr)
+
+	if month == 0 || year == 0 {
+		now := time.Now()
+		month = int(now.Month())
+		year = now.Year()
+	}
+
+	records, err := h.payrollService.GetPayrollRecords(month, year)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, records)
+}
+
+func (h *Handler) ExportShifts(c *gin.Context) {
+	c.Header("Content-Disposition", "attachment; filename=shifts_export.csv")
+	c.Header("Content-Type", "text/csv")
+	if err := h.dataService.ExportShiftsToCSV(c.Writer); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+}
+
+func (h *Handler) ImportShifts(c *gin.Context) {
+	file, _, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file"})
+		return
+	}
+	defer file.Close()
+
+	count, err := h.dataService.ImportShiftsFromCSV(file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Import successful", "count": count})
+}
+
+func (h *Handler) RequestTimeOff(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	var req domain.TimeOffRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.timeOffService.CreateTimeOffRequest(userID.(uint), &req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, req)
+}
+
+func (h *Handler) GetMyTimeOffRequests(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	reqs, err := h.timeOffService.GetMyTimeOffRequests(userID.(uint))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, reqs)
+}
+
+func (h *Handler) GetPendingTimeOffRequests(c *gin.Context) {
+	reqs, err := h.timeOffService.GetAllPendingRequests()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, reqs)
+}
+
+func (h *Handler) ApproveTimeOffRequest(c *gin.Context) {
+	idStr := c.Param("id")
+	id, _ := strconv.Atoi(idStr)
+	if err := h.timeOffService.UpdateRequestStatus(uint(id), domain.StatusApproved); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Time off approved"})
+}
+
+func (h *Handler) RejectTimeOffRequest(c *gin.Context) {
+	idStr := c.Param("id")
+	id, _ := strconv.Atoi(idStr)
+	if err := h.timeOffService.UpdateRequestStatus(uint(id), domain.StatusDenied); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Time off rejected"})
+}
+
+

@@ -71,7 +71,7 @@ func (s *shiftSwapService) ApproveSwap(swapID uint) error {
 	// In a real app we'd need RequiredRole and RequiredSkill from the Task,
 	// but here we just check rest and OT hours for the swap.
 	// We pass targetUser.Role and SkillLevel so it always passes the skill check.
-	if !ruleEngine.IsValid(targetUser, targetUserShifts, targetUser.Role, targetUser.SkillLevel, shift.StartTime, shift.EndTime) {
+	if !ruleEngine.IsValid(targetUser, targetUserShifts, targetUser.Role, targetUser.SkillLevel, shift.StartTime, shift.EndTime, false) {
 		return errors.New("target user violates scheduling rules (rest/OT limit)")
 	}
 
@@ -142,7 +142,7 @@ func (s *shiftSwapService) AutoSwap(requesterID, shiftID uint) error {
 
 		// Check if valid. We bypass Role and Skill exact matching here (assume any valid substitute works)
 		// by passing the user's own role and skill so it passes the equality check in IsValid.
-		if ruleEngine.IsValid(u, userShiftsMap[u.ID], u.Role, u.SkillLevel, shift.StartTime, shift.EndTime) {
+		if ruleEngine.IsValid(u, userShiftsMap[u.ID], u.Role, u.SkillLevel, shift.StartTime, shift.EndTime, false) {
 			score := ruleEngine.CalculateScore(u, userShiftsMap[u.ID], u.SkillLevel)
 			if bestUser == nil || score > bestScore {
 				bestUser = u

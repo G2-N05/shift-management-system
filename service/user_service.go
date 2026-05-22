@@ -61,6 +61,7 @@ func (s *userService) UpdateUser(id uint, req *domain.User) error {
 	user.Role = req.Role
 	user.SkillLevel = req.SkillLevel
 	user.MaxWeeklyHours = req.MaxWeeklyHours
+	user.BaseHourlyRate = req.BaseHourlyRate
 	return s.repo.Update(user)
 }
 

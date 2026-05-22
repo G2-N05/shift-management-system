@@ -24,6 +24,7 @@ type User struct {
 	Role            Role             `gorm:"type:varchar(20);not null;default:'employee'"`
 	EnergyScore     int              `gorm:"default:100"`
 	SkillLevel      int              `gorm:"not null;default:1"`
+	BaseHourlyRate  float64          `json:"BaseHourlyRate" gorm:"default:20.0"`
 	MaxWeeklyHours  int              `gorm:"not null;default:40"`
 	Shifts          []Shift          `gorm:"foreignKey:UserID"`
 	TimeOffRequests []TimeOffRequest `gorm:"foreignKey:UserID"`

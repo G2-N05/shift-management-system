@@ -8,6 +8,7 @@ function TaskManagement() {
   const [role, setRole] = useState('employee');
   const [requiredSkill, setRequiredSkill] = useState(1);
   const [headcount, setHeadcount] = useState(1);
+  const [workModel, setWorkModel] = useState('Parallel');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   
@@ -16,6 +17,7 @@ function TaskManagement() {
   const [editRole, setEditRole] = useState('employee');
   const [editRequiredSkill, setEditRequiredSkill] = useState(1);
   const [editHeadcount, setEditHeadcount] = useState(1);
+  const [editWorkModel, setEditWorkModel] = useState('Parallel');
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
 
@@ -46,6 +48,7 @@ function TaskManagement() {
           RequiredRole: role,
           RequiredSkill: parseInt(requiredSkill),
           Headcount: parseInt(headcount),
+          WorkModel: workModel,
           StartTime: new Date(startTime).toISOString(),
           EndTime: new Date(endTime).toISOString()
         })
@@ -63,6 +66,7 @@ function TaskManagement() {
     setEditRole(task.RequiredRole);
     setEditRequiredSkill(task.RequiredSkill);
     setEditHeadcount(task.Headcount);
+    setEditWorkModel(task.WorkModel || 'Parallel');
     
     // Format dates for datetime-local input
     const formatForInput = (isoString) => {
@@ -88,6 +92,7 @@ function TaskManagement() {
           RequiredRole: editRole,
           RequiredSkill: parseInt(editRequiredSkill),
           Headcount: parseInt(editHeadcount),
+          WorkModel: editWorkModel,
           StartTime: new Date(editStartTime).toISOString(),
           EndTime: new Date(editEndTime).toISOString()
         })
@@ -158,6 +163,14 @@ function TaskManagement() {
                 />
               </div>
               <div className="mb-3">
+                <label className="form-label text-muted small">Work Model</label>
+                <select className="form-select" value={workModel} onChange={(e) => setWorkModel(e.target.value)}>
+                  <option value="Parallel">Parallel (Làm song song)</option>
+                  <option value="Sequential">Sequential (Thay phiên)</option>
+                </select>
+                <div className="form-text small">Parallel = everyone at same time. Sequential = divide time.</div>
+              </div>
+              <div className="mb-3">
                   <label className="form-label text-muted small">Start Time</label>
                 <input 
                   type="datetime-local" 
@@ -206,6 +219,7 @@ function TaskManagement() {
                     <th className="px-4">Task</th>
                     <th>Role & Skill</th>
                     <th>Headcount</th>
+                    <th>Work Model</th>
                     <th>Time Needed</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -220,6 +234,11 @@ function TaskManagement() {
                         <span className="badge bg-info text-dark border">Lv {t.RequiredSkill || 1}</span>
                       </td>
                       <td>{t.Headcount || 1} people</td>
+                      <td>
+                        <span className={`badge ${t.WorkModel === 'Sequential' ? 'bg-secondary' : 'bg-primary'} bg-opacity-10 text-dark border`}>
+                          {t.WorkModel || 'Parallel'}
+                        </span>
+                      </td>
                       <td className="text-muted">
                         {new Date(t.StartTime).toLocaleString()} <br/>
                         to {new Date(t.EndTime).toLocaleString()}
@@ -282,6 +301,13 @@ function TaskManagement() {
                   <div className="mb-3">
                     <label className="form-label text-muted small">Headcount</label>
                     <input type="number" className="form-control" value={editHeadcount} onChange={(e) => setEditHeadcount(e.target.value)} min="1" required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label text-muted small">Work Model</label>
+                    <select className="form-select" value={editWorkModel} onChange={(e) => setEditWorkModel(e.target.value)}>
+                      <option value="Parallel">Parallel (Làm song song)</option>
+                      <option value="Sequential">Sequential (Thay phiên)</option>
+                    </select>
                   </div>
                   <div className="mb-3">
                     <label className="form-label text-muted small">Start Time</label>

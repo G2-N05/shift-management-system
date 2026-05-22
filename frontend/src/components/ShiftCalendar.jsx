@@ -50,15 +50,37 @@ function ShiftCalendar() {
       if (Array.isArray(usersData)) setUsers(usersData);
       
       if (Array.isArray(shiftsData)) {
-        let events = shiftsData.map(s => {
-          const user = usersData.find(u => u.ID === s.UserID);
-          const userName = user ? user.Name : `User #${s.UserID}`;
-          return {
-            title: `${userName} - ${s.Notes || 'Shift'}`,
-            start: new Date(s.StartTime),
-            end: new Date(s.EndTime),
-            resource: s,
-          };
+        const groupedShifts = {};
+        shiftsData.forEach(s => {
+          const key = `${s.StartTime}_${s.EndTime}_${s.Notes || 'Shift'}`;
+          if (!groupedShifts[key]) groupedShifts[key] = [];
+          groupedShifts[key].push(s);
+        });
+
+        let events = [];
+        Object.values(groupedShifts).forEach(group => {
+          const first = group[0];
+          if (group.length === 1) {
+            const user = usersData.find(u => u.ID === first.UserID);
+            const userName = user ? user.Name : `User #${first.UserID}`;
+            events.push({
+              title: `${userName} - ${first.Notes || 'Shift'}`,
+              start: new Date(first.StartTime),
+              end: new Date(first.EndTime),
+              resource: first,
+            });
+          } else {
+            const names = group.map(s => {
+              const u = usersData.find(u => u.ID === s.UserID);
+              return u ? u.Name.split(' ')[0] : `User #${s.UserID}`;
+            }).join(', ');
+            events.push({
+              title: `${group.length} Staff (${names}) - ${first.Notes || 'Shift'}`,
+              start: new Date(first.StartTime),
+              end: new Date(first.EndTime),
+              resource: { ...first, isGroup: true },
+            });
+          }
         });
 
         // Group by user to calculate breaks
@@ -68,27 +90,8 @@ function ShiftCalendar() {
           userShifts[s.UserID].push(s);
         });
 
-        Object.keys(userShifts).forEach(uid => {
-          const sorted = userShifts[uid].sort((a, b) => new Date(a.StartTime) - new Date(b.StartTime));
-          const user = usersData.find(u => u.ID === parseInt(uid));
-          const userName = user ? user.Name : `User #${uid}`;
-          
-          for (let i = 0; i < sorted.length - 1; i++) {
-            const endCurrent = new Date(sorted[i].EndTime);
-            const startNext = new Date(sorted[i+1].StartTime);
-            
-            // Only draw break if there is a gap
-            if (endCurrent < startNext) {
-              events.push({
-                title: `🛌 ${userName} - Rest Period`,
-                start: endCurrent,
-                end: startNext,
-                resource: { Status: 'break' }
-              });
-            }
-          }
-        });
-
+        // Remove the visual "Rest Period" generation
+        // as it causes visual overlap/conflicts with other shifts.
         setShifts(events);
       }
     } catch (err) {
@@ -162,6 +165,10 @@ function ShiftCalendar() {
 
   const handleSelectEvent = (event) => {
     if (event.resource && event.resource.Status === 'break') return;
+    if (event.resource && event.resource.isGroup) {
+      alert("This is a grouped shift block. To edit individual shifts, please use the Shift Dashboard tab.");
+      return;
+    }
     const s = event.resource;
     setEditingShift(s);
     setEditUserId(s.UserID);

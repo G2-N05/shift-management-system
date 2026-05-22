@@ -20,6 +20,7 @@ func main() {
 	taskRepo := repository.NewTaskRepository(config.DB)
 	settingRepo := repository.NewSettingRepository(config.DB)
 	swapRepo := repository.NewShiftSwapRepository(config.DB)
+	coordRepo := repository.NewCoordinationRepository(config.DB)
 
 	// Setup Services
 	userService := service.NewUserService(userRepo)
@@ -31,9 +32,14 @@ func main() {
 	analyticsService := service.NewAnalyticsService(userRepo, shiftRepo)
 
 	healthService := service.NewHealthService(config.DB)
+	coordService := service.NewCoordinationService(taskRepo, shiftRepo, userRepo, settingRepo, coordRepo)
+	kpiService := service.NewKPIService(config.DB)
+	payrollService := service.NewPayrollService(config.DB)
+	dataService := service.NewDataService(config.DB)
+	timeOffService := service.NewTimeOffService(config.DB)
 
 	// Setup UI / API Handlers
-	handler := ui.NewHandler(userService, shiftService, taskService, settingService, authService, swapService, analyticsService, healthService)
+	handler := ui.NewHandler(userService, shiftService, taskService, settingService, authService, swapService, analyticsService, healthService, coordService, kpiService, payrollService, dataService, timeOffService)
 	router := ui.SetupRouter(handler)
 
 	// Background Auto-Scheduling Job

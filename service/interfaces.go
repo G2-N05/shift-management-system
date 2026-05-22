@@ -25,8 +25,10 @@ type ShiftService interface {
 }
 
 type TimeOffService interface {
-	SubmitRequest(req *domain.TimeOffRequest) error
-	ReviewRequest(reqId uint, status domain.TimeOffStatus) error
+	CreateTimeOffRequest(userID uint, req *domain.TimeOffRequest) error
+	GetMyTimeOffRequests(userID uint) ([]domain.TimeOffRequest, error)
+	GetAllPendingRequests() ([]domain.TimeOffRequest, error)
+	UpdateRequestStatus(requestID uint, status domain.TimeOffStatus) error
 }
 
 type TaskService interface {
@@ -36,6 +38,12 @@ type TaskService interface {
 	DeleteTask(id uint) error
 	AutoScheduleShifts() (int, error)
 	ReScheduleShifts() (int, error) // Returns number of shifts scheduled
+}
+
+type CoordinationService interface {
+	DetectUnderstaffedTasks() error
+	GenerateSuggestions(taskID uint) ([]*domain.CoordinationSuggestion, error)
+	ApplySuggestion(suggestionID uint) error
 }
 
 type SettingService interface {
@@ -61,6 +69,7 @@ type HealthService interface {
 	SubmitDeclaration(decl *domain.HealthDeclaration) error
 	GetPendingDeclarations() ([]*domain.HealthDeclaration, error)
 	GetKnownConditions() ([]*domain.KnownCondition, error)
+	UpdateKnownCondition(id uint, newCondition string, newPoints int) error
 	SuggestPoints(condition string) int
 	ApproveDeclaration(id uint, pointsDeducted int, adminNotes string) error
 	RejectDeclaration(id uint, adminNotes string) error

@@ -2,11 +2,20 @@ import { useState, useEffect } from 'react';
 
 function HealthManagement() {
   const [declarations, setDeclarations] = useState([]);
+  const [knownConditions, setKnownConditions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'database'
+  
+  // Pending review states
   const [selectedDecl, setSelectedDecl] = useState(null);
   const [suggestedPoints, setSuggestedPoints] = useState(null);
   const [pointsDeducted, setPointsDeducted] = useState(0);
   const [adminNotes, setAdminNotes] = useState('');
+
+  // Database edit states
+  const [editingCondition, setEditingCondition] = useState(null);
+  const [editConditionName, setEditConditionName] = useState('');
+  const [editConditionPoints, setEditConditionPoints] = useState(0);
 
   useEffect(() => {
     fetchDeclarations();
@@ -14,13 +23,19 @@ function HealthManagement() {
 
   const fetchDeclarations = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/health/pending', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await res.json();
-      setDeclarations(data || []);
+      const token = localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      const [declRes, condRes] = await Promise.all([
+        fetch('http://localhost:8080/api/health/pending', { headers }),
+        fetch('http://localhost:8080/api/health/conditions', { headers })
+      ]);
+      
+      const declData = await declRes.json();
+      const condData = await condRes.json();
+      
+      setDeclarations(declData || []);
+      setKnownConditions(condData || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -102,6 +117,39 @@ function HealthManagement() {
     }
   };
 
+  const handleEditCondition = (cond) => {
+    setEditingCondition(cond);
+    setEditConditionName(cond.Condition);
+    setEditConditionPoints(cond.PointsDeducted);
+  };
+
+  const handleSaveCondition = async () => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/health/conditions/${editingCondition.ID}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          Condition: editConditionName,
+          PointsDeducted: parseInt(editConditionPoints)
+        })
+      });
+      if (res.ok) {
+        alert('Condition updated successfully!');
+        setEditingCondition(null);
+        fetchDeclarations(); // Refresh lists
+      } else {
+        const data = await res.json();
+        alert('Error: ' + data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update condition');
+    }
+  };
+
   if (loading) return <div className="text-center p-5">Loading...</div>;
 
   return (
@@ -110,6 +158,20 @@ function HealthManagement() {
         <h4 className="fw-bold m-0">Health & Energy Management</h4>
       </div>
 
+      <ul className="nav nav-pills mb-4">
+        <li className="nav-item">
+          <button className={`nav-link ${activeTab === 'pending' ? 'active' : ''}`} onClick={() => setActiveTab('pending')}>
+            <i className="bi bi-inbox me-2"></i> Pending Declarations
+          </button>
+        </li>
+        <li className="nav-item ms-2">
+          <button className={`nav-link ${activeTab === 'database' ? 'active' : ''}`} onClick={() => setActiveTab('database')}>
+            <i className="bi bi-database me-2"></i> Scored Conditions DB
+          </button>
+        </li>
+      </ul>
+
+      {activeTab === 'pending' && (
       <div className="card border-0 shadow-sm">
         <div className="card-header bg-white py-3">
           <h6 className="m-0 fw-bold">Pending Declarations</h6>
@@ -164,6 +226,54 @@ function HealthManagement() {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'database' && (
+      <div className="card border-0 shadow-sm">
+        <div className="card-header bg-white py-3">
+          <h6 className="m-0 fw-bold">Pre-Scored Health Conditions</h6>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th className="px-4">Condition Name</th>
+                  <th>Auto-Deduct Points</th>
+                  <th className="text-end px-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {knownConditions.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className="text-center py-4 text-muted">No conditions saved in database yet. Approve a declaration to create one.</td>
+                  </tr>
+                ) : (
+                  knownConditions.map(cond => (
+                    <tr key={cond.ID}>
+                      <td className="px-4 fw-medium">{cond.Condition}</td>
+                      <td>
+                        <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                          - {cond.PointsDeducted} pts
+                        </span>
+                      </td>
+                      <td className="text-end px-4">
+                        <button 
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleEditCondition(cond)}
+                        >
+                          <i className="bi bi-pencil-square"></i> Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      )}
 
       {/* Review Modal */}
       {selectedDecl && (
@@ -240,6 +350,48 @@ function HealthManagement() {
                 <button type="button" className="btn btn-danger me-auto" onClick={handleReject}>Reject</button>
                 <button type="button" className="btn btn-secondary" onClick={() => setSelectedDecl(null)}>Cancel</button>
                 <button type="button" className="btn btn-success" onClick={handleApprove}>Approve & Deduct</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Condition Modal */}
+      {editingCondition && (
+        <div className="modal fade show" style={{display: 'block', backgroundColor: 'rgba(0,0,0,0.5)'}} tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Condition Database</h5>
+                <button type="button" className="btn-close" onClick={() => setEditingCondition(null)}></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label fw-bold">Condition Name</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={editConditionName} 
+                    onChange={e => setEditConditionName(e.target.value)}
+                  />
+                  <div className="form-text">Changing this updates how future identical declarations are recognized.</div>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label fw-bold">Points to Deduct</label>
+                  <input 
+                    type="number" 
+                    className="form-control text-danger fw-bold" 
+                    value={editConditionPoints} 
+                    onChange={e => setEditConditionPoints(e.target.value)}
+                    min="0"
+                    max="100"
+                  />
+                  <div className="form-text">Auto-deducted points when this condition is declared in the future.</div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingCondition(null)}>Cancel</button>
+                <button type="button" className="btn btn-primary" onClick={handleSaveCondition}>Save Changes</button>
               </div>
             </div>
           </div>

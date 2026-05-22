@@ -45,6 +45,9 @@ func InitDB() {
 		&domain.ShiftSwap{},
 		&domain.HealthDeclaration{},
 		&domain.KnownCondition{},
+		&domain.CoordinationSuggestion{},
+		&domain.UserKPI{},
+		&domain.PayrollRecord{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)

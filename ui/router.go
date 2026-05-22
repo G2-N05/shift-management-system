@@ -60,6 +60,26 @@ func SetupRouter(handler *Handler) *gin.Engine {
 			protected.POST("/health/:id/reject", handler.RejectHealthDeclaration)
 			protected.GET("/health/ai-suggest", handler.SuggestHealthPoints)
 			protected.GET("/health/conditions", handler.GetKnownHealthConditions)
+			protected.PUT("/health/conditions/:id", handler.UpdateKnownCondition)
+
+			protected.GET("/coordination/understaffed", handler.GetUnderstaffedTasks)
+			protected.GET("/coordination/tasks/:id/suggestions", handler.GetCoordinationSuggestions)
+			protected.POST("/coordination/suggestions/:id/approve", handler.ApproveCoordinationSuggestion)
+
+			protected.GET("/kpis", handler.GetKPIs)
+			protected.POST("/kpis", handler.SaveKPI)
+
+			protected.GET("/payroll", handler.GetPayroll)
+			protected.POST("/payroll/calculate", handler.CalculatePayroll)
+
+			protected.GET("/data/export/shifts", handler.ExportShifts)
+			protected.POST("/data/import/shifts", handler.ImportShifts)
+
+			protected.POST("/time-off", handler.RequestTimeOff)
+			protected.GET("/time-off/my", handler.GetMyTimeOffRequests)
+			protected.GET("/time-off/pending", handler.GetPendingTimeOffRequests)
+			protected.POST("/time-off/:id/approve", handler.ApproveTimeOffRequest)
+			protected.POST("/time-off/:id/reject", handler.RejectTimeOffRequest)
 		}
 	}
 

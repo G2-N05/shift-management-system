@@ -21,6 +21,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _conditionController = TextEditingController();
   File? _proofImage;
 
+  // Time off states
+  List<dynamic> _myTimeOffRequests = [];
+  bool _isSubmittingTimeOff = false;
+  final TextEditingController _timeOffReasonController = TextEditingController();
+  DateTime _timeOffStartDate = DateTime.now();
+  DateTime _timeOffEndDate = DateTime.now();
+  double _timeOffDurationHours = 8.0;
+
+  // Selected preset condition
+  String _selectedPresetCondition = "";
+
   @override
   void initState() {
     super.initState();
@@ -31,9 +42,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isLoading = true);
     final user = await ApiService.getMe();
     final conditions = await ApiService.getKnownConditions();
+    final timeOffs = await ApiService.getMyTimeOffRequests();
     setState(() {
       _user = user;
       _knownConditions = conditions;
+      _myTimeOffRequests = timeOffs;
       _isLoading = false;
     });
   }
@@ -103,6 +116,186 @@ class _ProfileScreenState extends State<ProfileScreen> {
           )
         ],
       )
+    );
+  }
+
+  void _submitTimeOffRequest() async {
+    if (_timeOffReasonController.text.trim().isEmpty) {
+      _showDialog("Error", "Please enter a reason.");
+      return;
+    }
+    
+    setState(() => _isSubmittingTimeOff = true);
+    bool success = await ApiService.requestTimeOff(
+      _timeOffStartDate, 
+      _timeOffEndDate, 
+      _timeOffDurationHours, 
+      _timeOffReasonController.text
+    );
+    setState(() => _isSubmittingTimeOff = false);
+
+    if (success) {
+      _showDialog("Success", "Time off request submitted successfully.");
+      setState(() {
+        _timeOffReasonController.clear();
+      });
+      _loadProfile(); // reload to get updated list
+    } else {
+      _showDialog("Error", "Failed to submit time off request.");
+    }
+  }
+
+  void _showConditionPicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: 250,
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: Column(
+          children: [
+            Container(
+              color: CupertinoColors.systemGrey6,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CupertinoButton(
+                    child: const Text('Done'),
+                    onPressed: () => Navigator.of(context).pop(),
+                  )
+                ],
+              ),
+            ),
+            Expanded(
+              child: CupertinoPicker(
+                itemExtent: 40,
+                onSelectedItemChanged: (int index) {
+                  setState(() {
+                    if (index == 0) {
+                      _selectedPresetCondition = "";
+                    } else if (index - 1 < _knownConditions.length) {
+                      _selectedPresetCondition = _knownConditions[index - 1]['Condition'];
+                      _conditionController.text = _selectedPresetCondition;
+                    }
+                  });
+                },
+                children: [
+                  const Center(child: Text("Nhập thủ công (Khác)")),
+                  ..._knownConditions.map((cond) => Center(child: Text(cond['Condition'])))
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTimeOffSheet() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            padding: const EdgeInsets.only(top: 20),
+            decoration: const BoxDecoration(
+              color: CupertinoColors.white,
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Material(
+                color: Colors.transparent,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Request Time Off", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: const Icon(CupertinoIcons.xmark_circle_fill, color: CupertinoColors.systemGrey),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Text("Reason (e.g., Sick leave, Maternity, etc.)", style: TextStyle(fontWeight: FontWeight.w600, color: CupertinoColors.systemGrey)),
+                      const SizedBox(height: 8),
+                      CupertinoTextField(
+                        controller: _timeOffReasonController,
+                        placeholder: "Nhập lý do nghỉ phép...",
+                        padding: const EdgeInsets.all(16),
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: BoxDecoration(color: const Color(0xFFF4F7FA), borderRadius: BorderRadius.circular(12)),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text("Duration", style: TextStyle(fontWeight: FontWeight.w600, color: CupertinoColors.systemGrey)),
+                      const SizedBox(height: 8),
+                      CupertinoSlidingSegmentedControl<double>(
+                        groupValue: _timeOffDurationHours,
+                        children: const {
+                          4.0: Text("Half Day (4h)"),
+                          8.0: Text("Full Day (8h)"),
+                        },
+                        onValueChanged: (val) {
+                          if (val != null) {
+                            setModalState(() => _timeOffDurationHours = val);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      const Text("Start Date", style: TextStyle(fontWeight: FontWeight.w600, color: CupertinoColors.systemGrey)),
+                      SizedBox(
+                        height: 120,
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.date,
+                          initialDateTime: _timeOffStartDate,
+                          onDateTimeChanged: (val) {
+                            setModalState(() {
+                              _timeOffStartDate = val;
+                              if (_timeOffEndDate.isBefore(_timeOffStartDate)) {
+                                _timeOffEndDate = _timeOffStartDate;
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                      const Text("End Date", style: TextStyle(fontWeight: FontWeight.w600, color: CupertinoColors.systemGrey)),
+                      SizedBox(
+                        height: 120,
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.date,
+                          initialDateTime: _timeOffEndDate,
+                          minimumDate: _timeOffStartDate,
+                          onDateTimeChanged: (val) {
+                            setModalState(() => _timeOffEndDate = val);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: CupertinoButton(
+                          color: const Color(0xFF4A00E0),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _submitTimeOffRequest();
+                          },
+                          child: const Text("Submit Request", style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+      ),
     );
   }
 
@@ -235,9 +428,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             const Text("Condition Details", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: CupertinoColors.systemGrey)),
                             const SizedBox(height: 8),
+
+                            // Dropdown / Picker for Pre-Scored Conditions
+                            GestureDetector(
+                              onTap: _showConditionPicker,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF4F7FA),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _selectedPresetCondition.isEmpty ? "Chọn bệnh từ CSDL..." : _selectedPresetCondition,
+                                      style: TextStyle(
+                                        color: _selectedPresetCondition.isEmpty ? CupertinoColors.systemGrey : CupertinoColors.black,
+                                      ),
+                                    ),
+                                    const Icon(CupertinoIcons.chevron_down, color: CupertinoColors.systemGrey, size: 18)
+                                  ],
+                                ),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 12),
+                            
+                            // Manual Input Field
                             CupertinoTextField(
                               controller: _conditionController,
-                              placeholder: "E.g., Bị ốm, có thai, vấn đề xương khớp...",
+                              placeholder: "Hoặc nhập chi tiết (VD: Bị ốm, có thai...)",
                               padding: const EdgeInsets.all(16),
                               minLines: 3,
                               maxLines: 5,
@@ -246,33 +467,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            if (_knownConditions.isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              const Text("Suggested (Auto-Approve)", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: CupertinoColors.activeBlue)),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: _knownConditions.map((cond) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      _conditionController.text = cond['Condition'];
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: CupertinoColors.activeBlue.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: CupertinoColors.activeBlue.withOpacity(0.3)),
-                                      ),
-                                      child: Text(
-                                        cond['Condition'],
-                                        style: const TextStyle(color: CupertinoColors.activeBlue, fontSize: 12, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
                             ],
                             const SizedBox(height: 16),
                             const Text("Proof / Certificate", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: CupertinoColors.systemGrey)),
@@ -329,6 +523,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       
+                      // Time Off Section
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Time Off Requests", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
+                          GestureDetector(
+                            onTap: _showTimeOffSheet,
+                            child: const Text("+ Request", style: TextStyle(color: CupertinoColors.activeBlue, fontWeight: FontWeight.bold)),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (_myTimeOffRequests.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [BoxShadow(color: CupertinoColors.systemGrey.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))],
+                          ),
+                          child: const Center(child: Text("No time off requests.", style: TextStyle(color: CupertinoColors.systemGrey))),
+                        )
+                      else
+                        ..._myTimeOffRequests.map((req) {
+                          Color statusColor;
+                          String statusText = req['Status'] ?? 'pending';
+                          if (statusText == 'approved') statusColor = CupertinoColors.activeGreen;
+                          else if (statusText == 'denied') statusColor = CupertinoColors.destructiveRed;
+                          else statusColor = CupertinoColors.systemOrange;
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [BoxShadow(color: CupertinoColors.systemGrey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 3))],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "${DateTime.parse(req['StartDate']).toLocal().toString().split(' ')[0]} to ${DateTime.parse(req['EndDate']).toLocal().toString().split(' ')[0]}",
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: statusColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        statusText.toUpperCase(),
+                                        style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text("Reason: ${req['Reason']}", style: const TextStyle(fontSize: 14, color: CupertinoColors.systemGrey)),
+                                const SizedBox(height: 4),
+                                Text("Duration: ${req['DurationHours']} hours", style: const TextStyle(fontSize: 12, color: CupertinoColors.systemGrey)),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+
                       const SizedBox(height: 40),
                       
                       // Logout Button

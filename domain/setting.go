@@ -18,4 +18,11 @@ type SystemSetting struct {
 	HealthThresholdModerate    int `json:"HealthThresholdModerate" gorm:"default:70"`
 	ModerateHealthMaxOTPerWeek int `json:"ModerateHealthMaxOTPerWeek" gorm:"default:1"`
 	HealthThresholdLow         int `json:"HealthThresholdLow" gorm:"default:50"`
+
+	// Payroll defaults
+	DefaultBaseHourlyRate float64 `json:"DefaultBaseHourlyRate" gorm:"default:20.0"`
+
+	// Company Custom Priority Settings
+	PrioritizedHealthConditions string `json:"PrioritizedHealthConditions" gorm:"default:'mang thai,người già'"`
+	PriorityConditionDeduction  int    `json:"PriorityConditionDeduction" gorm:"default:50"`
 }

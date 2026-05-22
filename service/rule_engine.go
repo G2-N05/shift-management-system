@@ -15,7 +15,7 @@ func NewRuleEngine(minRest float64, setting *domain.SystemSetting) *RuleEngine {
 }
 
 // IsValid checks all hard constraints for assigning a user to a task segment
-func (e *RuleEngine) IsValid(user *domain.User, userShifts []domain.Shift, requiredRole domain.Role, requiredSkill int, startTime time.Time, endTime time.Time) bool {
+func (e *RuleEngine) IsValid(user *domain.User, userShifts []domain.Shift, requiredRole domain.Role, requiredSkill int, startTime time.Time, endTime time.Time, allowOvertime bool) bool {
 	// 1. Check Role & Skill Level
 	if user.Role != requiredRole {
 		return false
@@ -51,7 +51,7 @@ func (e *RuleEngine) IsValid(user *domain.User, userShifts []domain.Shift, requi
 		}
 	}
 	shiftDuration := endTime.Sub(startTime).Hours()
-	if weeklyHours+shiftDuration > float64(user.MaxWeeklyHours) {
+	if !allowOvertime && weeklyHours+shiftDuration > float64(user.MaxWeeklyHours) {
 		return false
 	}
 
@@ -73,7 +73,7 @@ func (e *RuleEngine) IsValid(user *domain.User, userShifts []domain.Shift, requi
 		// Rest hours check (After)
 		if s.StartTime.After(endTime) || s.StartTime.Equal(endTime) {
 			restTime := s.StartTime.Sub(endTime).Hours()
-			if restTime < e.MinRestHours {
+			if !allowOvertime && restTime < e.MinRestHours {
 				return false
 			}
 		}

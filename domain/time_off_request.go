@@ -18,9 +18,10 @@ const (
 // TimeOffRequest represents a request by a user for time off
 type TimeOffRequest struct {
 	gorm.Model
-	UserID    uint          `gorm:"not null;index"`
-	StartDate time.Time     `gorm:"not null;type:date"`
-	EndDate   time.Time     `gorm:"not null;type:date"`
-	Reason    string        `gorm:"type:text"`
-	Status    TimeOffStatus `gorm:"type:varchar(20);default:'pending'"`
+	UserID        uint          `gorm:"not null;index"`
+	StartDate     time.Time     `gorm:"not null"`
+	EndDate       time.Time     `gorm:"not null"`
+	DurationHours float64       `gorm:"not null;default:8.0"`
+	Reason        string        `gorm:"type:text"`
+	Status        TimeOffStatus `gorm:"type:varchar(20);default:'pending'"`
 }

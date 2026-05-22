@@ -15,6 +15,9 @@ function Settings() {
   const [healthThresholdModerate, setHealthThresholdModerate] = useState(70);
   const [moderateHealthMaxOTPerWeek, setModerateHealthMaxOTPerWeek] = useState(1);
   const [healthThresholdLow, setHealthThresholdLow] = useState(50);
+  const [defaultBaseHourlyRate, setDefaultBaseHourlyRate] = useState(20.0);
+  const [prioritizedHealthConditions, setPrioritizedHealthConditions] = useState('mang thai, người già');
+  const [priorityConditionDeduction, setPriorityConditionDeduction] = useState(50);
 
   useEffect(() => {
     fetchSettings();
@@ -36,6 +39,9 @@ function Settings() {
         if (data.HealthThresholdModerate !== undefined) setHealthThresholdModerate(data.HealthThresholdModerate);
         if (data.ModerateHealthMaxOTPerWeek !== undefined) setModerateHealthMaxOTPerWeek(data.ModerateHealthMaxOTPerWeek);
         if (data.HealthThresholdLow !== undefined) setHealthThresholdLow(data.HealthThresholdLow);
+        if (data.DefaultBaseHourlyRate !== undefined) setDefaultBaseHourlyRate(data.DefaultBaseHourlyRate);
+        if (data.PrioritizedHealthConditions !== undefined) setPrioritizedHealthConditions(data.PrioritizedHealthConditions);
+        if (data.PriorityConditionDeduction !== undefined) setPriorityConditionDeduction(data.PriorityConditionDeduction);
       }
     } catch (err) {
       console.error(err);
@@ -63,7 +69,10 @@ function Settings() {
           AfternoonShiftEnd: afternoonShiftEnd,
           HealthThresholdModerate: parseInt(healthThresholdModerate),
           ModerateHealthMaxOTPerWeek: parseInt(moderateHealthMaxOTPerWeek),
-          HealthThresholdLow: parseInt(healthThresholdLow)
+          HealthThresholdLow: parseInt(healthThresholdLow),
+          DefaultBaseHourlyRate: parseFloat(defaultBaseHourlyRate),
+          PrioritizedHealthConditions: prioritizedHealthConditions,
+          PriorityConditionDeduction: parseInt(priorityConditionDeduction)
         })
       });
       alert('Settings saved successfully!');
@@ -128,6 +137,27 @@ function Settings() {
                     required 
                   />
                   <div className="form-text">Tăng ca tối đa</div>
+                </div>
+              </div>
+
+              <h5 className="mb-3 text-secondary border-bottom pb-2">Financial Settings</h5>
+              <div className="mb-4">
+                <label className="form-label fw-medium">Default Base Hourly Rate</label>
+                <div className="input-group w-50">
+                  <span className="input-group-text">$</span>
+                  <input 
+                    type="number" 
+                    className="form-control text-center" 
+                    value={defaultBaseHourlyRate} 
+                    onChange={(e) => setDefaultBaseHourlyRate(e.target.value)}
+                    min="0"
+                    step="0.5"
+                    required 
+                  />
+                  <span className="input-group-text">/ hr</span>
+                </div>
+                <div className="form-text mt-1">
+                  Applied when generating payroll for employees who do not have a custom rate set.
                 </div>
               </div>
 
@@ -198,6 +228,40 @@ function Settings() {
               </div>
 
               <h5 className="mb-3 text-secondary border-bottom pb-2">AI Health &amp; Workload Rules</h5>
+              
+              <div className="card bg-light border-0 mb-4 p-3 rounded-3">
+                <h6 className="text-primary mb-3"><i className="bi bi-star-fill me-2"></i>Company Priority Health Policies</h6>
+                <div className="row">
+                  <div className="col-md-8">
+                    <label className="form-label fw-medium">Prioritized Health Keywords</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={prioritizedHealthConditions} 
+                      onChange={(e) => setPrioritizedHealthConditions(e.target.value)} 
+                      placeholder="e.g., mang thai, người già, xương yếu"
+                    />
+                    <div className="form-text mt-2">
+                      Comma-separated list of keywords. When an employee submits a health declaration containing any of these keywords, the AI will automatically suggest high priority deduction to reduce their workload.
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fw-medium">Priority Point Deduction</label>
+                    <input 
+                      type="number" 
+                      className="form-control text-center text-danger fw-bold" 
+                      value={priorityConditionDeduction} 
+                      onChange={(e) => setPriorityConditionDeduction(e.target.value)} 
+                      min="0" max="100" 
+                      required 
+                    />
+                    <div className="form-text mt-2">
+                      Points deducted for these prioritized conditions. (Default: 50 points, forces Low Health state).
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="row mb-4">
                 <div className="col-md-4">
                   <label className="form-label fw-medium text-warning">Moderate Health Threshold</label>
