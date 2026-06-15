@@ -10,7 +10,7 @@ Giao diện Web được phát triển trên nền tảng React với thiết k�
 
 ### 1. Màn hình Đăng nhập (Web Login)
 
-![Web Login Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/login_screenshot.png)
+![Web Login Screen](../images/login_screenshot.png)
 
 *   **Screen Purpose (Mục đích)**: Xác thực danh tính của Quản trị viên để cấp quyền truy cập vào bảng điều khiển quản trị.
 *   **Main Components (Thành phần chính)**:
@@ -28,7 +28,7 @@ Giao diện Web được phát triển trên nền tảng React với thiết k�
 
 ### 2. Bảng điều khiển Quản trị (Admin Dashboard)
 
-![Admin Dashboard Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/dashboard_screenshot.png)
+![Admin Dashboard Screen](../images/dashboard_screenshot.png)
 
 *   **Screen Purpose (Mục đích)**: Hiển thị tổng quan báo cáo vận hành, tình trạng phân công nhân sự và thanh điều hướng sidebar chuyển trang.
 *   **Main Components (Thành phần chính)**:
@@ -45,7 +45,7 @@ Giao diện Web được phát triển trên nền tảng React với thiết k�
 
 ### 3. Bảng Quản lý Ca trực (Shift Management / Calendar Board)
 
-![Shift Management Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/shift_management_screenshot.png)
+![Shift Management Screen](../images/shift_management_screenshot.png)
 
 *   **Screen Purpose (Mục đích)**: Hiển thị lịch biểu ca làm việc hàng tuần trực quan dưới dạng Grid Calendar, giúp Admin dễ dàng điều phối và kiểm tra ca làm.
 *   **Main Components (Thành phần chính)**:
@@ -62,7 +62,7 @@ Giao diện Web được phát triển trên nền tảng React với thiết k�
 
 ### 4. Phê duyệt Khai báo Sức khỏe (Health Declaration Management)
 
-![Health Declaration Management Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/health_declaration_screenshot.png)
+![Health Declaration Management Screen](../images/health_declaration_screenshot.png)
 
 *   **Screen Purpose (Mục đích)**: Giúp Admin theo dõi, xem minh chứng y tế và duyệt đơn khai báo bệnh lý của nhân viên để hệ thống điều chỉnh điểm năng lượng.
 *   **Main Components (Thành phần chính)**:
@@ -80,7 +80,7 @@ Giao diện Web được phát triển trên nền tảng React với thiết k�
 
 ### 5. Quản lý Nghỉ phép (Time Off Requests)
 
-![Time Off Requests Management Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/time_off_screenshot.png)
+![Time Off Requests Management Screen](../images/time_off_screenshot.png)
 
 *   **Screen Purpose (Mục đích)**: Tiếp nhận và xử lý các yêu cầu nghỉ phép của nhân sự, tự động giải phóng ca trực nếu được duyệt.
 *   **Main Components (Thành phần chính)**:
@@ -96,7 +96,7 @@ Giao diện Web được phát triển trên nền tảng React với thiết k�
 
 ### 6. Tính toán Lương & KPI (Payroll Dashboard)
 
-![Payroll Dashboard Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/payroll_screenshot.png)
+![Payroll Dashboard Screen](../images/payroll_screenshot.png)
 
 *   **Screen Purpose (Mục đích)**: Chốt bảng lương và chấm điểm hiệu suất KPI hàng tháng cho nhân viên.
 *   **Main Components (Thành phần chính)**:
@@ -116,7 +116,7 @@ Giao diện ứng dụng di động được phát triển bằng Flutter với 
 
 ### 1. Màn hình Đăng nhập Mobile (Mobile Login)
 
-![Mobile Login Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/mobile_login.png)
+![Mobile Login Screen](../images/mobile_login.png)
 
 *   **Screen Purpose (Mục đích)**: Xác thực danh tính của nhân viên để đăng nhập vào ứng dụng di động cá nhân.
 *   **Main Components (Thành phần chính)**:
@@ -133,7 +133,7 @@ Giao diện ứng dụng di động được phát triển bằng Flutter với 
 
 ### 2. Màn hình Lịch biểu cá nhân (Mobile Schedule)
 
-![Mobile Schedule Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/mobile_schedule.png)
+![Mobile Schedule Screen](../images/mobile_schedule.png)
 
 *   **Screen Purpose (Mục đích)**: Hiển thị danh sách các ca làm việc đã được phân công cho nhân viên theo thứ tự thời gian.
 *   **Main Components (Thành phần chính)**:
@@ -152,7 +152,7 @@ Giao diện ứng dụng di động được phát triển bằng Flutter với 
 
 ### 3. Màn hình Điểm danh ca trực (Mobile Clock In / Clock Out)
 
-![Mobile Clock In Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/mobile_clockin.png)
+![Mobile Clock In Screen](../images/mobile_clockin.png)
 
 *   **Screen Purpose (Mục đích)**: Cho phép nhân viên điểm danh bắt đầu ca trực (Clock In) và chốt giờ kết thúc ca trực (Clock Out).
 *   **Main Components (Thành phần chính)**:
@@ -167,7 +167,7 @@ Giao diện ứng dụng di động được phát triển bằng Flutter với 
 
 ### 4. Màn hình Khai báo Sức khỏe Mobile (Mobile Health Declaration)
 
-![Mobile Health Declaration Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/mobile_health_declaration.png)
+![Mobile Health Declaration Screen](../images/mobile_health_declaration.png)
 
 *   **Screen Purpose (Mục đích)**: Nhân viên tự khai báo các vấn đề sức khỏe/bệnh lý phát sinh và đính kèm chứng nhận y khoa để làm cơ sở giảm tải ca trực.
 *   **Main Components (Thành phần chính)**:
@@ -185,7 +185,7 @@ Giao diện ứng dụng di động được phát triển bằng Flutter với 
 
 ### 5. Yêu cầu Nghỉ phép (Mobile Time Off Request Sheet)
 
-![Mobile Time Off Request Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/mobile_timeoff.png)
+![Mobile Time Off Request Screen](../images/mobile_timeoff.png)
 
 *   **Screen Purpose (Mục đích)**: Cho phép nhân viên tạo đơn xin nghỉ phép có lý do và gửi lên hệ thống phê duyệt.
 *   **Main Components (Thành phần chính)**:
@@ -203,7 +203,7 @@ Giao diện ứng dụng di động được phát triển bằng Flutter với 
 
 ### 6. Màn hình Thông báo Mobile (Mobile Notifications)
 
-![Mobile Notifications Screen](file:///d:/Workspace/TBDD/shift-management-system/docs/images/mobile_notifications.png)
+![Mobile Notifications Screen](../images/mobile_notifications.png)
 
 *   **Screen Purpose (Mục đích)**: Hiển thị các thông báo từ hệ thống hoặc đồng nghiệp gửi tới nhân viên (yêu cầu đổi ca, kết quả phê duyệt đơn từ).
 *   **Main Components (Thành phần chính)**:
