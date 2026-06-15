@@ -90,12 +90,11 @@ flowchart LR
     Admin --- UC26
     Admin --- UC28
 
-    %% Các quan hệ <<include>> và <<extend>>
-    UC05 <.. UC07 : "<<include>>"
-    UC13 <.. UC14 : "<<include>>"
-    UC21 <.. UC22 : "<<include>>"
-    
-    UC08 ..> UC07 : "<<extend>>"
+    %% Các quan hệ include và extend
+    UC07 -.->|"<<include>>"| UC05
+    UC14 -.->|"<<include>>"| UC13
+    UC22 -.->|"<<include>>"| UC21
+    UC08 -.->|"<<extend>>"| UC07
 ```
 
 ---

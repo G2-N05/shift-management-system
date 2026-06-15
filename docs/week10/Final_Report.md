@@ -131,12 +131,11 @@ flowchart LR
     Admin --- UC26
     Admin --- UC28
 
-    %% Các quan hệ <<include>> và <<extend>>
-    UC05 <.. UC07 : "<<include>>"
-    UC13 <.. UC14 : "<<include>>"
-    UC21 <.. UC22 : "<<include>>"
-    
-    UC08 ..> UC07 : "<<extend>>"
+    %% Các quan hệ include và extend
+    UC07 -.->|"<<include>>"| UC05
+    UC14 -.->|"<<include>>"| UC13
+    UC22 -.->|"<<include>>"| UC21
+    UC08 -.->|"<<extend>>"| UC07
 ```
 
 > **Nguồn:** [UseCase_Diagram_Tuan_2.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week2/UseCase_Diagram_Tuan_2.md) | Đặc tả kịch bản chi tiết: [UseCase_Scenarios_Tuan_2.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week2/UseCase_Scenarios_Tuan_2.md)
