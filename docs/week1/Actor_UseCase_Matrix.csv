@@ -1,17 +1,31 @@
- Mã UC | Tên Use Case | Manager | Employee | Scheduler Engine | Auth Service | Notification Service 
---- | --- | --- | --- | --- | --- | ---
-**UC-01** | Đăng nhập | x | x | | x | 
-**UC-02** | Quản lý nhân viên | x | | | | 
-**UC-03** | Quản lý phòng ban | x | | | | 
-**UC-04** | Thiết lập ca | x | | | | 
-**UC-05** | Thiết lập ràng buộc | x | | | | 
-**UC-06** | Tạo kỳ lập lịch | x | | | | 
-**UC-07** | Sinh lịch tự động | x | | x | | 
-**UC-08** | Chỉnh sửa lịch thủ công | x | | | | 
-**UC-09** | Duyệt đổi ca | x | | | | x 
-**UC-10** | Xem lịch tổng | x | | | | 
-**UC-11** | Xem báo cáo | x | | | | 
-**UC-12** | Xuất báo cáo | x | | | | 
-**UC-13** | Xem lịch cá nhân | | x | | | 
-**UC-14** | Gửi yêu cầu đổi ca | | x | | | x 
-**UC-15** | Nhận thông báo | x | x | | | x 
+Mã UC | Tên Use Case | Admin | Manager | Employee
+--- | --- | --- | --- | ---
+**UC-01** | Đăng nhập | x | x | x
+**UC-02** | Quản lý nhân viên | x | | 
+**UC-03** | [Đã hủy] | | | 
+**UC-04** | Thiết lập ca | x | x | 
+**UC-05** | Thiết lập ràng buộc | x | x | 
+**UC-06** | [Đã hủy] | | | 
+**UC-07** | Sinh lịch tự động | x | x | 
+**UC-08** | Chỉnh sửa lịch thủ công | x | x | 
+**UC-09** | Duyệt đổi ca | x | x | x
+**UC-10** | Xem lịch tổng | x | x | 
+**UC-11** | Xem báo cáo kiệt sức | x | x | 
+**UC-12** | [Đã hủy] | | | 
+**UC-13** | Xem lịch cá nhân | | | x
+**UC-14** | Gửi yêu cầu đổi ca | | | x
+**UC-15** | Nhận thông báo | x | x | x
+**UC-16** | Gửi khai báo sức khỏe | | | x
+**UC-17** | Phê duyệt khai báo sức khỏe | x | | 
+**UC-18** | Cấu hình danh mục bệnh trạng đã biết | x | | 
+**UC-19** | Chấm công vào ca - Clock-In | | | x
+**UC-20** | Chấm công ra ca - Clock-Out | | | x
+**UC-21** | Xem các tác vụ thiếu nhân sự - Understaffed Tasks | x | x | 
+**UC-22** | Áp dụng gợi ý điều phối thông minh | x | x | 
+**UC-23** | Xem báo cáo rủi ro nghỉ việc - Attrition Risks | x | x | 
+**UC-24** | Truy vấn gợi ý nhân sự dự phòng - Succession Planning | x | x | 
+**UC-25** | Chấm điểm KPI hiệu suất | x | x | 
+**UC-26** | Tính toán và phê duyệt bảng lương | x | | 
+**UC-27** | Gửi yêu cầu nghỉ phép - Time-Off Request | | | x
+**UC-28** | Phê duyệt đơn nghỉ phép | x | | 
+**UC-29** | Import/Export dữ liệu qua CSV | x | x | 
