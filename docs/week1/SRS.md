@@ -187,10 +187,6 @@ flowchart LR
 - **Business Rules**: Cần bổ sung từ tài liệu thiết kế chi tiết.
 - **Kết quả đầu ra**: Bản ghi thông tin nhân viên được cập nhật (Thêm/Sửa/Xóa).
 
-#### UC-03: [DEPRECATED]
-*(Lưu ý: Use Case này đã hủy bỏ trong quá trình đồng bộ hóa thiết kế và mã nguồn thực tế).*
-
----
 
 ### 3.2. Nhóm Thiết lập ca và Lập lịch
 
@@ -213,9 +209,6 @@ flowchart LR
 - **Activities flow**: Cần bổ sung từ tài liệu thiết kế chi tiết.
 - **Business Rules**: Cần bổ sung từ tài liệu thiết kế chi tiết.
 - **Kết quả đầu ra**: Cấu hình tham số hệ thống được lưu trữ.
-
-#### UC-06: [DEPRECATED]
-*(Lưu ý: Use Case này đã hủy bỏ trong quá trình đồng bộ hóa thiết kế và mã nguồn thực tế).*
 
 #### UC-07: Sinh lịch tự động
 - **Mã Use Case**: `UC-07`
@@ -270,9 +263,6 @@ flowchart LR
 - **Activities flow**: Cần bổ sung từ tài liệu thiết kế chi tiết.
 - **Business Rules**: Cần bổ sung từ tài liệu thiết kế chi tiết.
 - **Kết quả đầu ra**: Biểu đồ/báo cáo Burnout Score được hiển thị.
-
-#### UC-12: [DEPRECATED]
-*(Lưu ý: Use Case này đã hủy bỏ trong quá trình đồng bộ hóa thiết kế và mã nguồn thực tế).*
 
 #### UC-13: Xem lịch cá nhân
 - **Mã Use Case**: `UC-13`
@@ -505,16 +495,13 @@ Bảng dưới đây mô tả các yêu cầu chất lượng của hệ thống
 | :--- | :--- | :--- | :--- |
 | **UC-01** | Đăng nhập | Admin, Manager, Employee | Hoạt động |
 | **UC-02** | Quản lý nhân viên | Admin | Hoạt động |
-| **UC-03** | Quản lý phòng quan | - | **Deprecated (Đã hủy)** |
 | **UC-04** | Thiết lập ca | Admin, Manager | Hoạt động |
 | **UC-05** | Thiết lập ràng buộc | Admin, Manager | Hoạt động |
-| **UC-06** | Tạo kỳ lập lịch | - | **Deprecated (Đã hủy)** |
 | **UC-07** | Sinh lịch tự động | Manager, Admin | Hoạt động |
 | **UC-08** | Chỉnh sửa lịch thủ công | Manager, Admin | Hoạt động |
 | **UC-09** | Duyệt đổi ca | Employee, Manager, Admin | Hoạt động |
 | **UC-10** | Xem lịch tổng | Admin, Manager | Hoạt động |
 | **UC-11** | Xem báo cáo kiệt sức | Admin, Manager | Hoạt động |
-| **UC-12** | Xuất báo cáo | - | **Deprecated (Đã hủy)** |
 | **UC-13** | Xem lịch cá nhân | Employee | Hoạt động |
 | **UC-14** | Gửi yêu cầu đổi ca | Employee | Hoạt động |
 | **UC-15** | Nhận thông báo | Employee, Manager, Admin | Hoạt động |
