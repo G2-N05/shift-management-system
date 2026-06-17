@@ -690,11 +690,3 @@ flowchart TD
    - Không thực hiện tính toán bảng lương đối với tài khoản Admin của hệ thống.
 6. **Quy tắc phê duyệt nghỉ phép**:
    - Khi đơn nghỉ phép được duyệt, hệ thống tự động hủy các ca trực bị trùng lịch trong khoảng thời gian nghỉ phép của nhân sự đó.
-
-### 6.5. Lịch sử thay đổi tài liệu
-
-| Phiên bản | Ngày | Nội dung thay đổi | Người thực hiện |
-| :--- | :--- | :--- | :--- |
-| **1.0** | 15/03/2026 | Khởi tạo tài liệu đặc tả yêu cầu phần mềm (SRS) ban đầu. | Trần Thị Thu Hường |
-| **1.1** | 20/04/2026 | Đồng bộ hóa danh sách Use Case với ma trận và sơ đồ Use Case tuần 2. | Vũ Xuân Mai |
-| **2.0** | 18/06/2026 | Tái cấu trúc toàn diện tài liệu theo bố cục chuẩn IEEE 830, bổ sung bảng thuật ngữ, bối cảnh hệ thống, ma trận ánh xạ UC-FR, và phụ lục. | Trần Thị Thu Hường |
