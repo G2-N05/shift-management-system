@@ -16,6 +16,18 @@ Trong vận hành doanh nghiệp sản xuất, dịch vụ hoặc bán lẻ, vi�
 *   **Bảo vệ sức khỏe**: Tích hợp các thuật toán giảm ca gánh vác khi điểm năng lượng (Energy Score) của nhân viên suy giảm.
 *   **Vận hành linh hoạt**: Cung cấp khả năng chấm công, đổi ca tự động (Auto-Swap), xin nghỉ phép và cảnh báo khẩn cấp khi thiếu nhân sự.
 
+### 1.3. Thành viên dự án và Phân công công việc
+Dự án được xây dựng và hoàn thiện bởi sự đóng góp chuyên môn của 3 thành viên:
+*   **Vũ Xuân Mai (Chuyên trách Phát triển Cốt lõi và Bảo mật Hệ thống)**: Chịu trách nhiệm viết toàn bộ mã nguồn chính (Code), xây dựng kiến trúc kỹ thuật và thực hiện kiểm thử bảo mật chuyên sâu, đảm bảo sự ổn định và an toàn cho toàn bộ hệ thống.
+*   **Trần Thị Thu Hường (Đảm bảo Chất lượng, Giám sát Vận hành & Quản lý Tài liệu)**: Đảm nhận vai trò Kiểm thử viên (Tester), thực hiện kiểm thử toàn diện các tính năng, đồng thời chịu trách nhiệm chính trong việc soạn thảo Báo cáo tổng kết dự án và viết/hoàn thiện tất cả các tài liệu của dự án từ tuần 1 đến tuần 10.
+*   **Nguyễn Thị Thương (Thiết kế Giao diện và Nâng cấp Trải nghiệm Người dùng)**: Phụ trách Thiết kế giao diện trực quan (UI), nghiên cứu và tìm hiểu các phương án nâng cấp trải nghiệm người dùng (UX), và giám sát sự đồng bộ của thiết kế trong quá trình phát triển.
+
+| Thành viên | Vai trò | Nhiệm vụ cụ thể | Trạng thái | Ghi chú |
+| :--- | :--- | :--- | :--- | :--- |
+| **Vũ Xuân Mai** | Chuyên trách Phát triển Cốt lõi và Bảo mật Hệ thống | - Phát triển và viết toàn bộ mã nguồn hệ thống (Golang Backend, React Web, Flutter Mobile, FastAPI NLP).<br>- Xây dựng kiến trúc kỹ thuật và thiết lập cơ sở dữ liệu SQLite.<br>- Thực hiện kiểm thử đơn vị, kiểm thử bảo mật chuyên sâu. | **Hoàn thành** | Phụ trách toàn bộ phần lập trình (Code) |
+| **Trần Thị Thu Hường** | Đảm bảo Chất lượng, Giám sát Vận hành & Quản lý Tài liệu | - Soạn thảo và hoàn thiện Báo cáo tổng kết dự án (Final Report).<br>- Soạn thảo và chịu trách nhiệm làm tất cả các tài liệu tuần (Weeks 1 - 10).<br>- Thực hiện kiểm thử toàn diện các tính năng (Tester), thu thập dữ liệu và giám sát hiệu suất sản phẩm. | **Hoàn thành** | Phụ trách Báo cáo, Tài liệu & Kiểm thử |
+| **Nguyễn Thị Thương** | Thiết kế Giao diện và Nâng cấp Trải nghiệm Người dùng | - Thiết kế giao diện trực quan (UI Mockup, Wireframe, Figma Prototype).<br>- Nghiên cứu và tìm hiểu các phương án nâng cấp trải nghiệm người dùng (UX).<br>- Giám sát sự đồng bộ của thiết kế trong quá trình phát triển. | **Hoàn thành** | Phụ trách Thiết kế UI/UX |
+
 ---
 
 ## 2. Phân tích Yêu cầu (Requirement Analysis)
