@@ -473,18 +473,59 @@ Thực thi 10 kịch bản kiểm thử tích hợp (IT-01 đến IT-10) bao tr�
 
 ## 11. Phụ lục (Appendix)
 
-*   [docs/week1/SRS.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week1/SRS.md): Tài liệu đặc tả yêu cầu phần mềm.
-*   [docs/week2/UseCase_Scenarios_Tuan_2.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week2/UseCase_Scenarios_Tuan_2.md): Đặc tả kịch bản Use Cases chi tiết.
-*   [docs/week3/Class_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week3/Class_Diagram.md): Sơ đồ UML Class Diagram.
-*   [docs/week3/Code_Skeleton.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week3/Code_Skeleton.md): Đặc tả cấu trúc mã nguồn.
-*   [docs/week4/Sequence_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week4/Sequence_Diagram.md): Thiết kế biểu đồ trình tự động.
-*   [docs/week4/UI_Mockup.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week4/UI_Mockup.md): Đặc tả giao diện màn hình.
-*   [docs/week5/State_Machine_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week5/State_Machine_Diagram.md): Thiết kế máy trạng thái.
-*   [docs/week5/Activity_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week5/Activity_Diagram.md): Quy trình nghiệp vụ.
-*   [docs/week6/Package_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week6/Package_Diagram.md): Kiến trúc đóng gói & phân tầng.
-*   [docs/week6/Interfaces_Design.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week6/Interfaces_Design.md): Giao diện lớp nghiệp vụ và dữ liệu.
-*   [docs/week7/Design_Patterns.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week7/Design_Patterns.md): Đặc tả mẫu thiết kế.
-*   [docs/week8/Core_Features.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week8/Core_Features.md): Tính năng cốt lõi.
-*   [docs/week8/Feature_Code_Mapping.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week8/Feature_Code_Mapping.md): Ma trận truy vết yêu cầu.
-*   [docs/week9/Integration_Design.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week9/Integration_Design.md): Tài liệu thiết kế tích hợp.
-*   [docs/week9/Integration_Test.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week9/Integration_Test.md): Nhật ký kiểm thử tích hợp.
+### PHỤ LỤC A – Tài liệu SRS Đầy đủ
+Tài liệu Đặc tả Yêu cầu Phần mềm (SRS) hoàn chỉnh được tái cấu trúc theo chuẩn cấu trúc IEEE 830.
+- Xem chi tiết tại tệp tin đặc tả: [SRS.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week1/SRS.md)
+
+### PHỤ LỤC B – Script SQL Đầy đủ
+Mô tả cấu trúc sơ đồ bảng cơ sở dữ liệu quan hệ cho toàn bộ hệ thống Shift Management System trên SQLite.
+- Xem chi tiết toàn bộ script SQL tạo bảng và seed dữ liệu mặc định tại: [database_script.sql](file:///d:/Workspace/TBDD/shift-management-system/database_script.sql)
+
+### PHỤ LỤC C – Biên bản Usability Testing
+**Biên bản ghi chép kết quả Kiểm thử Khả năng Sử dụng (Usability Testing)**
+- **Thời gian thực hiện**: Ngày 05/06/2026.
+- **Thành phần thực hiện**: Nhóm phát triển (Trần Thị Thu Hường - Tester chính, Vũ Xuân Mai - Giám sát kỹ thuật).
+- **Đối tượng tham gia thử nghiệm (Participants)**: 
+  1. Nguyễn Văn A (Nhân viên vận hành thử nghiệm - vai trò Employee).
+  2. Lê Thị B (Quản lý cửa hàng thử nghiệm - vai trò Manager).
+- **Kết quả thực hiện các Task kiểm thử**:
+
+| STT | Nhiệm vụ kiểm thử (Task) | Kết quả thực hiện | Nhận xét và phản hồi của người dùng |
+| :--- | :--- | :---: | :--- |
+| 1 | **Đăng nhập hệ thống (UC-01)** | **Thành công** | Giao diện đăng nhập mượt mà, phản hồi báo lỗi sai tài khoản rất rõ ràng. |
+| 2 | **Chấm công Vào/Ra ca (UC-19, UC-20)** | **Thành công** | Nút bấm to, rõ ràng trên Mobile App. Ghi nhận thời gian chính xác. Người dùng đề xuất thêm định vị GPS (sẽ phát triển sau). |
+| 3 | **Khai báo sức khỏe y tế (UC-16)** | **Thành công** | Khả năng tải ảnh lên từ thư viện điện thoại hoạt động tốt. AI NLP nhận diện từ khóa tiếng Việt và gợi ý điểm trừ Energy hợp lý. |
+| 4 | **Sinh lịch tự động (UC-07)** | **Thành công** | Xử lý nhanh. Các ràng buộc cấm trùng và khoảng nghỉ 11h được đảm bảo chính xác. |
+| 5 | **Đề nghị đổi ca trực (UC-09)** | **Thành công** | Đề xuất đồng nghiệp tương thích rất trực quan. Người nhận nhận được thông báo ngay lập tức. |
+| 6 | **Tính lương tháng (UC-26)** | **Thành công** | Tổng hợp giờ làm chính xác từ log chấm công. Báo cáo bảng lương hiển thị đầy đủ chi tiết lương gốc và thưởng KPI. |
+
+- **Kết luận**: Hệ thống đạt tiêu chuẩn khả dụng cao, giao diện trực quan và phản hồi trạng thái rõ ràng đối với cả hai vai trò người dùng (Manager trên Web và Employee trên Mobile).
+
+### PHỤ LỤC D – Nhật ký Làm việc Nhóm
+
+| Ngày thực hiện | Thành viên | Nội dung công việc | Kết quả đạt được |
+| :--- | :--- | :--- | :--- |
+| **12/03/2026** | Cả nhóm | Họp khởi động dự án, thống nhất đề tài và phân công. | Chốt đề tài "Shift Management System", phân công vai trò (Mai phát triển chính, Hường làm tài liệu & QA, Thương làm UI/UX). |
+| **19/03/2026** | Cả nhóm | Khảo sát quy trình nghiệp vụ thực tế và thu thập yêu cầu từ doanh nghiệp. | Bảng đặc tả 26 yêu cầu chức năng (FR) và 8 yêu cầu phi chức năng (NFR). |
+| **26/03/2026** | Hường, Thương | Thiết kế sơ đồ Use Case và viết kịch bản đặc tả chi tiết. | Sơ đồ Use Case tổng quát và file đặc tả 29 ca sử dụng [UseCase_Scenarios_Tuan_2.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week2/UseCase_Scenarios_Tuan_2.md). |
+| **02/04/2026** | Vũ Xuân Mai | Thiết kế sơ đồ lớp Class Diagram và cấu trúc mã nguồn khung xương (skeleton). | Hoàn thiện [Class_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week3/Class_Diagram.md) và [Code_Skeleton.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week3/Code_Skeleton.md). |
+| **09/04/2026** | Mai, Thương | Thiết kế Sequence Diagram cho các luồng chính và xây dựng UI Mockups. | Tệp [Sequence_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week4/Sequence_Diagram.md) và đặc tả 6 màn hình giao diện tại [UI_Mockup.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week4/UI_Mockup.md). |
+| **16/04/2026** | Mai, Hường | Thiết kế sơ đồ máy trạng thái (State Machine) và quy trình hoạt động Activity Diagram. | Hoàn thiện [State_Machine_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week5/State_Machine_Diagram.md) và [Activity_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week5/Activity_Diagram.md). |
+| **23/04/2026** | Vũ Xuân Mai | Thiết kế sơ đồ cấu trúc gói (Package Diagram) và đặc tả các Go Interfaces. | Hoàn thiện [Package_Diagram.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week6/Package_Diagram.md) and [Interfaces_Design.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week6/Interfaces_Design.md). |
+| **30/04/2026** | Vũ Xuân Mai | Áp dụng Design Patterns và lập trình hoàn thiện Backend server. | Bản thiết kế [Design_Patterns.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week7/Design_Patterns.md) và mã nguồn Core Backend. |
+| **14/05/2026** | Mai, Thương | Hoàn thiện phát triển Web Client, Mobile App và microservice AI NLP. | Hệ thống chạy thử nghiệm cục bộ, liên kết hoàn chỉnh các cấu phần. |
+| **28/05/2026** | Hường, Mai | Thiết kế kịch bản và chạy thử nghiệm tích hợp (Integration Testing). | Nhật ký kiểm thử tích hợp 10 ca tại [Integration_Test.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week9/Integration_Test.md). |
+| **05/06/2026** | Cả nhóm | Chạy thử nghiệm Usability Testing, sửa các lỗi phát hiện và hoàn thiện báo cáo. | Sửa lỗi giao diện, hoàn thiện Unit Tests và báo cáo tổng kết. |
+| **18/06/2026** | Hường, Mai | Rà soát, tái cấu trúc tài liệu SRS chuẩn IEEE 830 và đóng gói mã nguồn. | Tệp [SRS.md](file:///d:/Workspace/TBDD/shift-management-system/docs/week1/SRS.md) mới và Báo cáo tổng kết hoàn chỉnh. |
+
+### PHỤ LỤC E – Tài liệu Tham khảo
+• Kendall & Kendall – Systems Analysis and Design (Pearson, 10th Ed.)
+• Ian Sommerville – Software Engineering (Pearson, 10th Ed.)
+• Roger Pressman – Software Engineering: A Practitioner's Approach (8th Ed.)
+• Martin Fowler – UML Distilled (3rd Ed.)
+• IEEE Std 830-1998 – Recommended Practice for Software Requirements Specifications
+• Jakob Nielsen – 10 Usability He.uristics (https://nngroup.com)
+• Don Norman – The Design of Everyday Things (Revised Ed.)
+• Go Language Official Documentation (https://go.dev/doc/)
+• SQLite SQL Syntax Reference (https://sqlite.org/lang.html)
+• Flutter Framework Documentation (https://docs.flutter.dev/)
