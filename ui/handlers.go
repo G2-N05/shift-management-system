@@ -50,12 +50,39 @@ func NewHandler(us service.UserService, ss service.ShiftService, ts service.Task
 	}
 }
 
+func getManagedUserIDs(h *Handler, managerID uint) map[uint]bool {
+	users, _ := h.userService.GetAllUsers()
+	managed := make(map[uint]bool)
+	for _, u := range users {
+		if u.ID == managerID || (u.ManagerID != nil && *u.ManagerID == managerID) {
+			managed[u.ID] = true
+		}
+	}
+	return managed
+}
+
 func (h *Handler) GetUsers(c *gin.Context) {
 	users, err := h.userService.GetAllUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	role, _ := c.Get("role")
+	if role == "manager" {
+		userIDFloat, _ := c.Get("userID")
+		managerID := uint(userIDFloat.(float64))
+		managed := getManagedUserIDs(h, managerID)
+		
+		filtered := make([]*domain.User, 0)
+		for _, u := range users {
+			if managed[u.ID] {
+				filtered = append(filtered, u)
+			}
+		}
+		users = filtered
+	}
+
 	c.JSON(http.StatusOK, users)
 }
 
@@ -161,6 +188,21 @@ func (h *Handler) GetShifts(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	if role == "manager" {
+		userIDFloat, _ := c.Get("userID")
+		managerID := uint(userIDFloat.(float64))
+		managed := getManagedUserIDs(h, managerID)
+		
+		filtered := make([]*domain.Shift, 0)
+		for _, s := range shifts {
+			if managed[s.UserID] {
+				filtered = append(filtered, s)
+			}
+		}
+		shifts = filtered
+	}
+
 	c.JSON(http.StatusOK, shifts)
 }
 
@@ -343,7 +385,14 @@ func (h *Handler) ClockOut(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid shift id"})
 		return
 	}
-	if err := h.shiftService.ClockOut(uint(id), time.Now()); err != nil {
+
+	var req struct {
+		ProofImage string `json:"proofImage"`
+	}
+	// Try to bind JSON, but ignore error if empty
+	_ = c.ShouldBindJSON(&req)
+
+	if err := h.shiftService.ClockOut(uint(id), time.Now(), req.ProofImage); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -356,6 +405,22 @@ func (h *Handler) GetPendingSwaps(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	role, _ := c.Get("role")
+	if role == "manager" {
+		userIDFloat, _ := c.Get("userID")
+		managerID := uint(userIDFloat.(float64))
+		managed := getManagedUserIDs(h, managerID)
+		
+		filtered := make([]*domain.ShiftSwap, 0)
+		for _, s := range swaps {
+			if managed[s.RequesterID] || managed[s.TargetUserID] {
+				filtered = append(filtered, s)
+			}
+		}
+		swaps = filtered
+	}
+
 	c.JSON(http.StatusOK, swaps)
 }
 
@@ -693,6 +758,22 @@ func (h *Handler) GetKPIs(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	role, _ := c.Get("role")
+	if role == "manager" {
+		userIDFloat, _ := c.Get("userID")
+		managerID := uint(userIDFloat.(float64))
+		managed := getManagedUserIDs(h, managerID)
+		
+		filtered := make([]domain.UserKPI, 0)
+		for _, k := range kpis {
+			if managed[k.UserID] {
+				filtered = append(filtered, k)
+			}
+		}
+		kpis = filtered
+	}
+
 	c.JSON(http.StatusOK, kpis)
 }
 
@@ -746,6 +827,22 @@ func (h *Handler) GetPayroll(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	role, _ := c.Get("role")
+	if role == "manager" {
+		userIDFloat, _ := c.Get("userID")
+		managerID := uint(userIDFloat.(float64))
+		managed := getManagedUserIDs(h, managerID)
+		
+		filtered := make([]domain.PayrollRecord, 0)
+		for _, r := range records {
+			if managed[r.UserID] {
+				filtered = append(filtered, r)
+			}
+		}
+		records = filtered
+	}
+
 	c.JSON(http.StatusOK, records)
 }
 
@@ -805,6 +902,22 @@ func (h *Handler) GetPendingTimeOffRequests(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	role, _ := c.Get("role")
+	if role == "manager" {
+		userIDFloat, _ := c.Get("userID")
+		managerID := uint(userIDFloat.(float64))
+		managed := getManagedUserIDs(h, managerID)
+		
+		filtered := make([]domain.TimeOffRequest, 0)
+		for _, r := range reqs {
+			if managed[r.UserID] {
+				filtered = append(filtered, r)
+			}
+		}
+		reqs = filtered
+	}
+
 	c.JSON(http.StatusOK, reqs)
 }
 

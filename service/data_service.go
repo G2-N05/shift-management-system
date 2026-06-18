@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -150,11 +151,20 @@ func (s *DataService) ImportUsersFromCSV(reader io.Reader) (int, error) {
 			}
 		}
 
+		password := row[3]
+		if password == "" {
+			password = "123456"
+		}
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			continue
+		}
+
 		user := domain.User{
 			Name:           row[0],
 			Email:          row[1],
 			Username:       row[2],
-			PasswordHash:   row[3],
+			PasswordHash:   string(hash),
 			Phone:          row[4],
 			Role:           domain.Role(row[5]),
 			SkillLevel:     skillLevel,

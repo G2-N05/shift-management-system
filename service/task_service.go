@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"time"
 	"shift-management/domain"
 	"shift-management/repository"
@@ -25,6 +26,11 @@ func NewTaskService(tr repository.TaskRepository, ur repository.UserRepository, 
 }
 
 func (s *taskService) CreateTask(task *domain.Task) error {
+	now := time.Now()
+	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	if task.StartTime.Before(startOfToday) {
+		return errors.New("cannot create task for a past date")
+	}
 	task.IsAssigned = false
 	return s.taskRepo.Save(task)
 }
@@ -78,6 +84,12 @@ func (s *taskService) GetAllTasks() ([]*domain.Task, error) {
 }
 
 func (s *taskService) UpdateTask(id uint, req *domain.Task) error {
+	now := time.Now()
+	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	if req.StartTime.Before(startOfToday) {
+		return errors.New("cannot update task to a past date")
+	}
+
 	task, err := s.taskRepo.FindByID(id)
 	if err != nil {
 		return err

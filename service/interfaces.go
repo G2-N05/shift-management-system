@@ -19,7 +19,7 @@ type ShiftService interface {
 	GetShiftsByUser(userId uint) ([]*domain.Shift, error)
 	GetAllShifts() ([]*domain.Shift, error)
 	ClockIn(shiftID uint, t time.Time) error
-	ClockOut(shiftID uint, t time.Time) error
+	ClockOut(shiftID uint, t time.Time, proofImage string) error
 	UpdateShift(id uint, shift *domain.Shift) error
 	DeleteShift(id uint) error
 }

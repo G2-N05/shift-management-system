@@ -51,22 +51,40 @@ class ApiService {
     return [];
   }
 
-  static Future<bool> clockIn(int shiftId) async {
+  static Future<String?> clockIn(int shiftId) async {
     final token = await getToken();
-    if (token == null) return false;
-    final response = await http.post(
-      Uri.parse('$baseUrl/shifts/$shiftId/clock-in'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    return response.statusCode == 200;
+    if (token == null) return "User not logged in";
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/shifts/$shiftId/clock-in'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        return null; // success
+      }
+      final data = jsonDecode(response.body);
+      return data['error'] ?? "Unknown error";
+    } catch (e) {
+      return "Network error: $e";
+    }
   }
 
-  static Future<bool> clockOut(int shiftId) async {
+  static Future<bool> clockOut(int shiftId, {String? proofImage}) async {
     final token = await getToken();
     if (token == null) return false;
+    
+    Map<String, dynamic> body = {};
+    if (proofImage != null) {
+      body['proofImage'] = proofImage;
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/shifts/$shiftId/clock-out'),
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
     );
     return response.statusCode == 200;
   }
@@ -265,8 +283,8 @@ class ApiService {
           'Content-Type': 'application/json'
         },
         body: jsonEncode({
-          'StartDate': start.toIso8601String(),
-          'EndDate': end.toIso8601String(),
+          'StartDate': start.toUtc().toIso8601String(),
+          'EndDate': end.toUtc().toIso8601String(),
           'DurationHours': durationHours,
           'Reason': reason
         }),

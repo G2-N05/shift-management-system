@@ -8,6 +8,7 @@ function UserList() {
   const [role, setRole] = useState('employee');
   const [skillLevel, setSkillLevel] = useState(1);
   const [maxWeeklyHours, setMaxWeeklyHours] = useState(40);
+  const [managerId, setManagerId] = useState('');
   
   // Edit State
   const [editingUser, setEditingUser] = useState(null);
@@ -16,6 +17,7 @@ function UserList() {
   const [editRole, setEditRole] = useState('employee');
   const [editSkillLevel, setEditSkillLevel] = useState(1);
   const [editMaxWeeklyHours, setEditMaxWeeklyHours] = useState(40);
+  const [editManagerId, setEditManagerId] = useState('');
   
   // Track Work State
   const [trackingUser, setTrackingUser] = useState(null);
@@ -46,6 +48,7 @@ function UserList() {
     setEditRole(user.Role);
     setEditSkillLevel(user.SkillLevel);
     setEditMaxWeeklyHours(user.MaxWeeklyHours);
+    setEditManagerId(user.ManagerID || '');
   };
 
   const handleUpdate = async (e) => {
@@ -59,7 +62,8 @@ function UserList() {
           email: editEmail, 
           role: editRole, 
           skillLevel: parseInt(editSkillLevel), 
-          maxWeeklyHours: parseInt(editMaxWeeklyHours) 
+          maxWeeklyHours: parseInt(editMaxWeeklyHours),
+          ManagerID: editManagerId ? parseInt(editManagerId) : null
         })
       });
       setEditingUser(null);
@@ -99,12 +103,18 @@ function UserList() {
       await fetch('http://localhost:8080/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, role, skillLevel: parseInt(skillLevel), maxWeeklyHours: parseInt(maxWeeklyHours) })
+        body: JSON.stringify({ 
+          name, email, role, 
+          skillLevel: parseInt(skillLevel), 
+          maxWeeklyHours: parseInt(maxWeeklyHours),
+          ManagerID: managerId ? parseInt(managerId) : null
+        })
       });
       setName('');
       setEmail('');
       setSkillLevel(1);
       setMaxWeeklyHours(40);
+      setManagerId('');
       fetchData();
     } catch (err) {
       console.error(err);
@@ -138,6 +148,7 @@ function UserList() {
     // reset input
     e.target.value = null;
   };
+  const managers = users.filter(u => u.Role === 'manager' || u.Role === 'admin');
 
   return (
     <div className="row">
@@ -186,16 +197,25 @@ function UserList() {
                 />
               </div>
               <div className="mb-4">
-                <label className="form-label text-muted small">Max Weekly OT Limit (Hours)</label>
-                <input 
-                  type="number" 
-                  className="form-control"
-                  value={maxWeeklyHours} 
-                  onChange={(e) => setMaxWeeklyHours(e.target.value)} 
-                  min="1" max="100"
-                  required 
-                />
-              </div>
+                  <label className="form-label text-muted small">Max Weekly OT Limit (Hours)</label>
+                  <input 
+                    type="number" 
+                    className="form-control"
+                    value={maxWeeklyHours} 
+                    onChange={(e) => setMaxWeeklyHours(e.target.value)} 
+                    min="1" max="100"
+                    required 
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="form-label text-muted small">Assign Manager (Optional)</label>
+                  <select className="form-select" value={managerId} onChange={(e) => setManagerId(e.target.value)}>
+                    <option value="">None</option>
+                    {managers.map(m => (
+                      <option key={m.ID} value={m.ID}>{m.Name} ({m.Role})</option>
+                    ))}
+                  </select>
+                </div>
               <button type="submit" className="btn btn-primary w-100">Add Member</button>
             </form>
           </div>
@@ -317,6 +337,15 @@ function UserList() {
                   <div className="mb-4">
                     <label className="form-label text-muted small">Max Weekly OT Limit (Hours)</label>
                     <input type="number" className="form-control" value={editMaxWeeklyHours} onChange={(e) => setEditMaxWeeklyHours(e.target.value)} min="1" max="100" required />
+                  </div>
+                  <div className="mb-4">
+                    <label className="form-label text-muted small">Assign Manager (Optional)</label>
+                    <select className="form-select" value={editManagerId} onChange={(e) => setEditManagerId(e.target.value)}>
+                      <option value="">None</option>
+                      {managers.map(m => (
+                        <option key={m.ID} value={m.ID}>{m.Name} ({m.Role})</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="d-flex justify-content-end">
                     <button type="button" className="btn btn-light me-2" onClick={() => setEditingUser(null)}>Cancel</button>

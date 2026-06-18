@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/shift.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
@@ -34,13 +36,32 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _clockIn(int shiftId) async {
-    bool success = await ApiService.clockIn(shiftId);
-    if (success) _loadShifts();
+    String? error = await ApiService.clockIn(shiftId);
+    if (error == null) {
+      _loadShifts();
+    } else {
+      _showErrorDialog(error);
+    }
   }
 
   void _clockOut(int shiftId) async {
-    bool success = await ApiService.clockOut(shiftId);
-    if (success) _loadShifts();
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
+    
+    if (image == null) {
+      _showErrorDialog("Bạn phải chụp ảnh minh chứng (proof) để kết thúc ca làm việc.");
+      return;
+    }
+
+    final bytes = await image.readAsBytes();
+    String base64Image = "data:image/jpeg;base64," + base64Encode(bytes);
+
+    bool success = await ApiService.clockOut(shiftId, proofImage: base64Image);
+    if (success) {
+      _loadShifts();
+    } else {
+      _showErrorDialog("Clock out thất bại. Vui lòng thử lại!");
+    }
   }
 
   void _showSwapDialog(int requesterId, int shiftId) async {

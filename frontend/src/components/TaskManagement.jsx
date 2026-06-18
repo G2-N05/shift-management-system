@@ -28,8 +28,16 @@ function TaskManagement() {
   const [replacementRoleFilter, setReplacementRoleFilter] = useState('');
   const [chosenUsers, setChosenUsers] = useState([]); // Array of user objects
 
+  // Calculate the minimum allowed datetime (today at 00:00)
+  const [minDateTime, setMinDateTime] = useState('');
+
   useEffect(() => {
     fetchTasksAndUsers();
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    setMinDateTime(today.toISOString().slice(0, 16));
   }, []);
 
   const fetchTasksAndUsers = async () => {
@@ -52,6 +60,14 @@ function TaskManagement() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    if (new Date(startTime) < startOfToday) {
+      alert("Cannot create a task for a past date!");
+      return;
+    }
+
     try {
       const res = await fetch('http://localhost:8080/api/tasks', {
         method: 'POST',
@@ -67,6 +83,12 @@ function TaskManagement() {
           EndTime: new Date(endTime).toISOString()
         })
       });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        alert(errData.error || 'Failed to create task');
+        return;
+      }
       const createdTask = await res.json();
       
       setTitle('');
@@ -160,8 +182,16 @@ function TaskManagement() {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    if (new Date(editStartTime) < startOfToday) {
+      alert("Cannot update a task to a past date!");
+      return;
+    }
+
     try {
-      await fetch(`http://localhost:8080/api/tasks/${editingTask.ID}`, {
+      const res = await fetch(`http://localhost:8080/api/tasks/${editingTask.ID}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -174,6 +204,12 @@ function TaskManagement() {
           EndTime: new Date(editEndTime).toISOString()
         })
       });
+      
+      if (!res.ok) {
+        const errData = await res.json();
+        alert(errData.error || 'Failed to update task');
+        return;
+      }
       setEditingTask(null);
       fetchTasksAndUsers();
     } catch (err) {
@@ -263,6 +299,7 @@ function TaskManagement() {
                   type="datetime-local" 
                   className="form-control"
                   value={startTime} 
+                  min={minDateTime}
                   onChange={(e) => {
                     const newStart = e.target.value;
                     setStartTime(newStart);
@@ -282,6 +319,7 @@ function TaskManagement() {
                   type="datetime-local" 
                   className="form-control"
                   value={endTime} 
+                  min={minDateTime}
                   onChange={(e) => setEndTime(e.target.value)} 
                   required 
                 />
@@ -511,11 +549,11 @@ function TaskManagement() {
                   <div className="row mb-4">
                     <div className="col-6">
                       <label className="form-label text-muted small fw-semibold">Start Time</label>
-                      <input type="datetime-local" className="form-control" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} required />
+                      <input type="datetime-local" className="form-control" value={editStartTime} min={minDateTime} onChange={(e) => setEditStartTime(e.target.value)} required />
                     </div>
                     <div className="col-6">
                       <label className="form-label text-muted small fw-semibold">End Time</label>
-                      <input type="datetime-local" className="form-control" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} required />
+                      <input type="datetime-local" className="form-control" value={editEndTime} min={minDateTime} onChange={(e) => setEditEndTime(e.target.value)} required />
                     </div>
                   </div>
                   <div className="d-flex justify-content-end pt-3 border-top">

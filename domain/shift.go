@@ -16,6 +16,7 @@ type Shift struct {
 	EndTime       time.Time  `gorm:"not null"`
 	ClockInTime   *time.Time `gorm:"index"`
 	ClockOutTime  *time.Time `gorm:"index"`
+	ProofImage    string     `gorm:"type:text"` // Base64 encoded image or path
 	Notes         string     `gorm:"type:text"`
 	Status        string     `gorm:"type:varchar(20);default:'scheduled'"` // e.g., scheduled, completed, cancelled
 }
