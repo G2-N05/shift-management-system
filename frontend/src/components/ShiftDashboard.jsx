@@ -17,6 +17,7 @@ function ShiftDashboard() {
   const [editEndTime, setEditEndTime] = useState('');
   const [editNotes, setEditNotes] = useState('');
   const [editStatus, setEditStatus] = useState('');
+  const [viewingProof, setViewingProof] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -208,6 +209,11 @@ function ShiftDashboard() {
                           </span>
                         </td>
                         <td className="py-3 text-end px-4">
+                          {s.ProofImage && (
+                            <button className="btn btn-sm btn-info text-white me-2" onClick={() => setViewingProof(s.ProofImage)}>
+                              <i className="bi bi-image"></i> Proof
+                            </button>
+                          )}
                           <button className="btn btn-sm btn-light border me-2" onClick={() => handleEdit(s)}>
                             <i className="bi bi-pencil"></i> Edit
                           </button>
@@ -278,6 +284,21 @@ function ShiftDashboard() {
                     </div>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewingProof && (
+        <div className="modal d-block z-3" style={{ backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1060 }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 bg-transparent shadow-none">
+              <div className="modal-header border-0 justify-content-end p-2">
+                <button type="button" className="btn-close btn-close-white fs-4" onClick={() => setViewingProof(null)}></button>
+              </div>
+              <div className="modal-body text-center p-0">
+                <img src={viewingProof} alt="Proof of Work" className="img-fluid rounded shadow-lg" style={{ maxHeight: '80vh', objectFit: 'contain' }} />
               </div>
             </div>
           </div>
